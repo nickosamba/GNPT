@@ -1,0 +1,169 @@
+{% extends "core/base.html" %}
+
+{% block title %}Tableau de bord - Grammaire{% endblock %}
+
+{% block content %}
+<section class="hero-section" style="padding-top: 120px;">
+    <div class="container">
+        <h1>Tableau de bord</h1>
+        <p>Bienvenue, {{ user.first_name|default:user.username }} !</p>
+    </div>
+</section>
+
+<section class="py-5" style="background: white;">
+    <div class="container">
+        <div class="row g-4">
+            <!-- Profile Card -->
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            {% if user.profile.avatar %}
+                                <img src="{{ user.profile.avatar.url }}" alt="Avatar" class="rounded-circle" width="100" height="100" style="object-fit: cover;">
+                            {% else %}
+                                <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 100px; height: 100px; font-size: 2.5rem;">
+                                    {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <h4 class="mb-1">{{ user.get_full_name|default:user.username }}</h4>
+                        <p class="text-muted mb-3">{{ user.email }}</p>
+                        {% if user.profile.is_premium %}
+                            <span class="badge bg-warning text-dark">
+                                <i class="bi bi-star-fill"></i> Premium
+                            </span>
+                        {% else %}
+                            <span class="badge bg-secondary">
+                                <i class="bi bi-person"></i> Gratuit
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Stats Card -->
+            <div class="col-md-8">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body p-4">
+                        <h3 class="mb-4">
+                            <i class="bi bi-graph-up text-primary"></i>
+                            Vos Statistiques
+                        </h3>
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <div class="p-3 bg-light rounded">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-play-circle text-primary fs-3 me-3"></i>
+                                        <div>
+                                            <h2 class="mb-0">{{ user.videos_watched|default:0 }}</h2>
+                                            <small class="text-muted">Vidéos vues</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-3 bg-light rounded">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-file-earmark-text text-success fs-3 me-3"></i>
+                                        <div>
+                                            <h2 class="mb-0">{{ user.documents.count|default:0 }}</h2>
+                                            <small class="text-muted">Documents</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-3 bg-light rounded">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-chat-square-text text-info fs-3 me-3"></i>
+                                        <div>
+                                            <h2 class="mb-0">{{ user.commentaires.count|default:0 }}</h2>
+                                            <small class="text-muted">Commentaires</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-3 bg-light rounded">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-heart text-danger fs-3 me-3"></i>
+                                        <div>
+                                            <h2 class="mb-0">{{ user.likes.count|default:0 }}</h2>
+                                            <small class="text-muted">Likes</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% if user.profile.is_premium %}
+                            <div class="mt-4 p-3 bg-warning bg-opacity-10 rounded">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-clock-history text-warning fs-4 me-3"></i>
+                                    <div>
+                                        <strong>Abonnement Premium actif</strong>
+                                        {% if user.profile.premium_until %}
+                                            <p class="mb-0 text-muted small">
+                                                Expire le : {{ user.profile.premium_until|date:"d/m/Y à H:i" }}
+                                            </p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="mt-4 p-3 bg-primary bg-opacity-10 rounded">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-stars text-primary fs-4 me-3"></i>
+                                    <div>
+                                        <strong>Passez Premium !</strong>
+                                        <p class="mb-0 text-muted small">
+                                            Débloquez toutes les fonctionnalités : IA, stockage illimité, et plus encore.
+                                        </p>
+                                    </div>
+                                </div>
+                                <a href="#" class="btn btn-primary btn-sm mt-2">
+                                    <i class="bi bi-arrow-right"></i> Voir les offres
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="row g-4 mt-4">
+            <div class="col-12">
+                <h3 class="mb-3">
+                    <i class="bi bi-lightning-charge text-warning"></i>
+                    Actions rapides
+                </h3>
+            </div>
+            <div class="col-md-3">
+                <a href="#" class="btn btn-outline-primary w-100 h-100 py-4">
+                    <i class="bi bi-camera-video fs-4 d-block mb-2"></i>
+                    Vidéos
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="#" class="btn btn-outline-success w-100 h-100 py-4">
+                    <i class="bi bi-file-earmark-pdf fs-4 d-block mb-2"></i>
+                    Documents IA
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="#" class="btn btn-outline-info w-100 h-100 py-4">
+                    <i class="bi bi-chat-dots fs-4 d-block mb-2"></i>
+                    Chat IA
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="#" class="btn btn-outline-secondary w-100 h-100 py-4">
+                    <i class="bi bi-gear fs-4 d-block mb-2"></i>
+                    Paramètres
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

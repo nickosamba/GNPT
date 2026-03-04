@@ -1,0 +1,77 @@
+{% extends "core/base.html" %}
+
+{% block title %}Accueil - Grammaire{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <h1>Bienvenue sur Grammaire</h1>
+        <p>La plateforme intelligente d'apprentissage des langues</p>
+        
+        {% if user.is_authenticated %}
+            <div class="login-card">
+                <h2>Bonjour, {{ user.first_name|default:user.username }} ! 👋</h2>
+                <p class="subtitle">Vous êtes connecté</p>
+                <a href="{% url 'dashboard' %}" class="btn btn-google">
+                    <i class="bi bi-speedometer2"></i>
+                    Accéder au tableau de bord
+                </a>
+            </div>
+        {% else %}
+            <div class="login-card">
+                <h2>Connectez-vous</h2>
+                <p class="subtitle">Accédez à tous vos cours et fonctionnalités</p>
+                
+                <a href="{% url 'google_login' %}" class="btn btn-google w-100">
+                    <i class="bi bi-google"></i>
+                    Continuer avec Google
+                </a>
+                
+                <div class="divider">
+                    <span>OU</span>
+                </div>
+                
+                <a href="{% url 'account_login' %}" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-envelope"></i>
+                    Se connecter avec email
+                </a>
+                
+                <p class="mt-3 text-muted small">
+                    Pas encore de compte ? 
+                    <a href="{% url 'account_signup' %}" class="text-primary">S'inscrire</a>
+                </p>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="feature-section">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <i class="bi bi-camera-video"></i>
+                    <h3>Vidéos Éducatives</h3>
+                    <p>Accédez à des cours vidéo interactifs pour améliorer votre grammaire et votre prononciation.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <i class="bi bi-file-earmark-pdf"></i>
+                    <h3>Documents IA</h3>
+                    <p>Uploadez vos PDF et interagissez avec notre IA pour des explications personnalisées.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <i class="bi bi-chat-dots"></i>
+                    <h3>Chat IA</h3>
+                    <p>Discutez avec notre assistant IA pour poser toutes vos questions sur la grammaire.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

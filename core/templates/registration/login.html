@@ -1,0 +1,35 @@
+{% extends "admin/login.html" %}
+{% load i18n %}
+{% load socialaccount %}
+
+{% block content %}
+{{ block.super }}
+
+<div style="margin-top: 20px; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background: #f9f9f9;">
+    <div style="text-align: center; margin-bottom: 15px;">
+        <span style="font-size: 14px; color: #666;">{% trans 'Ou connectez-vous avec' %}</span>
+    </div>
+    
+    <a href="{% provider_login_url 'google' %}" 
+       style="display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px 20px; background: #fff; border: 1px solid #ddd; border-radius: 4px; text-decoration: none; color: #333; font-weight: 500; transition: all 0.2s ease;"
+       onmouseover="this.style.background='#f5f5f5'; this.style.borderColor='#ccc';"
+       onmouseout="this.style.background='#fff'; this.style.borderColor='#ddd';">
+        <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18.1713 8.36791H10V12.0488H14.7145C14.3681 13.9415 13.2865 15.4995 11.6657 16.637V18.8032H14.5066C16.1713 17.267 17.1355 15.0098 17.1355 12.0488C17.1355 10.7051 16.8951 9.43455 16.4608 8.36791V8.36791Z" fill="#4285F4"/>
+            <path d="M5.06075 10.2674C5.06075 10.9755 5.17951 11.6617 5.39512 12.3049H2.375V10.2674H5.06075ZM10 4.81707V8.36791H5.61137C5.49512 8.04146 5.39512 7.69756 5.31463 7.34146L2.375 9.61951C2.97561 10.8049 4.07805 11.8293 5.39512 12.3049L8.41463 9.9561C7.62683 9.29512 7.10976 8.34146 7.10976 7.27317C7.10976 6.73659 7.21463 6.22439 7.40732 5.75366L4.42195 3.43902C3.20976 4.64146 2.5 6.33902 2.5 8.18537C2.5 10.7051 3.55366 12.9854 5.39512 14.639L8.41463 12.2902C7.22927 13.3805 5.62683 14.0439 3.8561 14.0439C1.72683 14.0439 0 12.3171 0 10.1854C0 8.0561 1.72683 6.32927 3.8561 6.32927C4.80976 6.32927 5.67561 6.6439 6.37561 7.18049L8.9561 4.60244C7.31463 3.37805 5.27561 2.63415 3.04878 2.63415C1.36341 2.63415 0 3.26829 0 4.39024C0 5.07561 0.387805 5.68537 1.04878 6.1561L3.8561 8.32927L5.06075 10.2674Z" fill="#34A853"/>
+            <path d="M10 4.81707V2.63415H10.0024C11.6268 2.63415 13.0415 3.19268 14.139 4.23415L16.8073 6.90244C15.1561 8.43902 12.9293 9.36829 10 9.36829C8.17561 9.36829 6.50976 8.7561 5.18537 7.73171L5.39512 12.3049C6.71463 12.7805 8.31463 13.4439 10.1854 13.4439C14.0439 13.4439 17.3146 10.9122 17.3146 7.27317C17.3146 6.92927 17.2756 6.58537 17.2 6.25854L10 4.81707Z" fill="#FBBC05"/>
+            <path d="M10 2.63415V4.81707L17.2 6.25854C16.822 4.62439 15.9561 3.20976 14.7145 2.18049L14.5066 0H11.6657C10.0439 1.13756 9.13537 2.69512 8.78902 4.5878L5.39512 7.27317C6.71951 8.29756 8.38537 8.90976 10.2098 8.90976C13.0854 8.90976 15.3122 7.98049 16.9634 6.4439L14.2951 3.77561C13.1976 2.73415 11.7829 2.17561 10.1585 2.17561H10V2.63415Z" fill="#EA4335"/>
+        </svg>
+        {% trans 'Se connecter avec Google' %}
+    </a>
+</div>
+{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    .login-form {
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
