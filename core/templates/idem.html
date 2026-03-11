@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Grammaire Normative</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif;
+            
+            background-attachment: fixed;
+            background-size: cover;
+            background-position: center;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="min-h-screen antialiased">
+
+    <nav class="sticky top-0 z-50 glass-panel shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-blue-900 rounded-xl flex items-center justify-center text-white font-black text-2xl shadow-lg">G</div>
+                    <span class="hidden md:block font-extrabold text-slate-900 tracking-tight text-xl">GRAMMAIRE NORMATIVE</span>
+                </div>
+                
+                <div class="flex items-center gap-6">
+                    <div class="text-right hidden sm:block">
+                        <p class="text-sm font-bold text-slate-900 leading-none">Bonjour ESTIM</p>
+                        <p class="text-xs font-medium text-blue-700 mt-1 italic">30 jours restants</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-full border-2 border-white shadow-md flex overflow-hidden">
+                        <div class="w-1/3 h-full bg-[#009543]"></div>
+                        <div class="w-1/3 h-full bg-[#FBDE4C]"></div>
+                        <div class="w-1/3 h-full bg-[#DC241F]"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12">
+        
+        <section class="relative group px-4 md:px-0" id="slider-container">
+    <div id="slider" class="flex overflow-x-auto snap-x snap-mandatory no-scrollbar gap-6 pb-4 scroll-smooth">
+        
+        <div class="min-w-full snap-center">
+            <div class="w-full bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-950 rounded-[2.5rem] p-6 md:p-10 text-white shadow-2xl overflow-hidden relative min-h-[350px] md:min-h-[420px] flex items-center">
+                <div class="absolute -top-24 -right-24 w-96 h-96 bg-white/10 rounded-full blur-[100px]"></div>
+                <div class="relative z-10 w-full md:flex items-center justify-between gap-10">
+                    <div class="max-w-xl">
+                        <span class="inline-block bg-amber-400 text-blue-900 text-[10px] font-black px-3 py-1 rounded-full mb-4 tracking-widest uppercase">Nouveauté</span>
+                        <h2 class="text-2xl md:text-4xl font-black leading-tight mb-3 uppercase tracking-tighter">
+                            Maîtrisez la langue française <br>
+                            <span class="text-amber-400">Édition Normative</span>
+                        </h2>
+                        <p class="text-sm md:text-base opacity-80 mb-6 font-medium max-w-md">La référence complète pour optimiser votre apprentissage de la grammaire.</p>
+                        <button class="bg-amber-400 text-blue-900 px-8 py-3 rounded-xl text-base font-black shadow-xl hover:bg-white hover:scale-105 transition-all">S'ABONNER MAINTENANT</button>
+                    </div>
+
+                    <div class="hidden lg:flex flex-col items-center gap-6 mr-10">
+                        <div class="relative group/book">
+                            <div class="absolute inset-0 bg-amber-400/20 blur-[80px] rounded-full scale-125"></div>
+                            <div class="relative w-64 h-80 transform rotate-[6deg] group-hover/book:rotate-0 transition-all duration-500 ease-out">
+                                <img src="{% static 'core/LIVRE1.png' %}" alt="Couverture" class="w-full h-full object-contain drop-shadow-[20px_30px_50px_rgba(0,0,0,0.5)] transform scale-[1.5] group-hover/book:scale-[1.6]">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="min-w-full snap-center">
+            <div class="w-full bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 rounded-[2.5rem] p-6 md:p-10 text-white shadow-2xl overflow-hidden relative min-h-[350px] md:min-h-[420px] flex items-center">
+                <div class="relative z-10">
+                    <h2 class="text-2xl md:text-4xl font-black leading-tight mb-3 uppercase">Cours Avancés <br><span class="text-purple-400">en ligne</span></h2>
+                    <p class="text-sm md:text-base opacity-80 mb-6 font-medium max-w-md">Accédez à des centaines d'exercices interactifs de conjugaison.</p>
+                    <button class="bg-purple-500 text-white px-8 py-3 rounded-xl text-base font-black shadow-xl">COMMENCER</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex justify-center gap-2 mt-4" id="dots">
+        <div class="dot w-6 h-1.5 bg-blue-900 rounded-full transition-all"></div>
+        <div class="dot w-1.5 h-1.5 bg-slate-300 rounded-full transition-all"></div>
+    </div>
+</section>
+
+
+
+        <section>
+            <div class="flex items-end justify-between mb-8">
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 uppercase tracking-tight">Catégories</h3>
+                    <div class="h-1 w-12 bg-amber-400 mt-1"></div>
+                </div>
+                <a href="#" class="text-blue-900 font-bold hover:underline">Voir tout le catalogue</a>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="glass-panel p-6 rounded-[2rem] flex items-center gap-5 hover:bg-white transition-all cursor-pointer group shadow-sm hover:shadow-xl border-white">
+                    <div class="w-16 h-16 bg-blue-900 text-white rounded-2xl flex items-center justify-center font-black text-2xl group-hover:rotate-6 transition-transform shadow-lg shadow-blue-900/20">G</div>
+                    <div>
+                        <h4 class="font-bold text-slate-900 text-lg leading-none">Grammaire</h4>
+                        <p class="text-sm text-slate-500 mt-1 font-medium">Les règles normatives</p>
+                    </div>
+                    <div class="ml-auto w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-blue-900 group-hover:text-white transition-all">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-6 rounded-[2rem] flex items-center gap-5 hover:bg-white transition-all cursor-pointer group shadow-sm hover:shadow-xl border-white">
+                    <div class="w-16 h-16 bg-amber-500 text-white rounded-2xl flex items-center justify-center font-black text-2xl group-hover:rotate-6 transition-transform shadow-lg shadow-amber-500/20">C</div>
+                    <div>
+                        <h4 class="font-bold text-slate-900 text-lg leading-none">Conjugaison</h4>
+                        <p class="text-sm text-slate-500 mt-1 font-medium">Temps et modes</p>
+                    </div>
+                    <div class="ml-auto w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-amber-500 group-hover:text-white transition-all">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <div class="mb-8">
+                <h3 class="text-2xl font-black text-slate-900 uppercase tracking-tight">Recommandé pour vous</h3>
+                <div class="h-1 w-12 bg-blue-900 mt-1"></div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="glass-panel p-4 rounded-3xl flex gap-6 items-center group cursor-pointer hover:shadow-lg transition-all border-white/60">
+                    <div class="w-40 h-28 bg-indigo-900 rounded-2xl flex-shrink-0 relative overflow-hidden shadow-md">
+                        <div class="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div class="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/40">
+                                <svg class="w-5 h-5 text-white fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            </div>
+                        </div>
+                        <div class="p-4 text-white text-[10px] font-bold leading-tight">MODULE VIDÉO<br>D'EXPLICATION</div>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-black text-blue-700 uppercase tracking-widest">Niveau Avancé</span>
+                        <h5 class="text-lg font-bold text-slate-900 leading-tight my-1 group-hover:text-blue-900 transition-colors">Maîtriser les accords complexes des participes passés</h5>
+                        <p class="text-sm text-slate-500 font-medium">12k vues • 8 min de lecture</p>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-4 rounded-3xl flex gap-6 items-center group cursor-pointer hover:shadow-lg transition-all border-white/60">
+                    <div class="w-40 h-28 bg-emerald-900 rounded-2xl flex-shrink-0 relative overflow-hidden shadow-md">
+                        <div class="p-4 text-white text-[10px] font-bold leading-tight">EXERCICES<br>PRATIQUES</div>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-black text-emerald-700 uppercase tracking-widest">Débutant</span>
+                        <h5 class="text-lg font-bold text-slate-900 leading-tight my-1 group-hover:text-blue-900 transition-colors">Les fondamentaux du présent de l'indicatif</h5>
+                        <p class="text-sm text-slate-500 font-medium">8k vues • 15 min de quiz</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="glass-panel mt-12 py-10 border-t">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-slate-500 text-sm font-medium">© 2026 Grammaire Normative - Tous droits réservés.</p>
+        </div>
+    </footer>
+
+
+
+
+
+    <script>
+    const slider = document.getElementById('slider');
+    const dots = document.querySelectorAll('.dot');
+    let scrollInterval;
+
+    function startAutoScroll() {
+        scrollInterval = setInterval(() => {
+            const slideWidth = slider.clientWidth;
+            const maxScroll = slider.scrollWidth - slideWidth;
+            
+            // Si on est à la fin, on revient au début, sinon on avance
+            if (slider.scrollLeft >= maxScroll - 10) {
+                slider.scrollTo({ left: 0, behavior: 'smooth' });
+            } else {
+                slider.scrollBy({ left: slideWidth, behavior: 'smooth' });
+            }
+        }, 5000); // Défilement toutes les 5 secondes
+    }
+
+    // Mise à jour visuelle des "dots" pendant le scroll
+    slider.addEventListener('scroll', () => {
+        const slideWidth = slider.clientWidth;
+        const activeIndex = Math.round(slider.scrollLeft / slideWidth);
+        
+        dots.forEach((dot, index) => {
+            if (index === activeIndex) {
+                dot.classList.add('w-6', 'bg-blue-900');
+                dot.classList.remove('w-1.5', 'bg-slate-300');
+            } else {
+                dot.classList.remove('w-6', 'bg-blue-900');
+                dot.classList.add('w-1.5', 'bg-slate-300');
+            }
+        });
+    });
+
+    // Arrêter le scroll auto quand l'utilisateur survole avec la souris
+    slider.addEventListener('mouseenter', () => clearInterval(scrollInterval));
+    slider.addEventListener('mouseleave', startAutoScroll);
+
+    // Initialisation
+    startAutoScroll();
+</script>
+</body>
+</html>

@@ -1,3 +1,4 @@
+import json
 from django.db import models
 from django.db.models import Sum
 from django.contrib.auth.models import User
@@ -95,7 +96,7 @@ class Profile(models.Model):
 
     def get_active_subscription(self):
         """Récupère l'abonnement le plus récent et non expiré de l'historique."""
-        return self.abonnements.filter(
+        return self.user.abonnements.filter(
             actif=True,
             date_fin__gt=timezone.now()
         ).order_by('-date_fin').first()
@@ -121,36 +122,146 @@ class Abonnement(models.Model):
 
 
 class Paiement(models.Model):
-    """Trace irréfutable de la transaction Mobile Money en cas de litige."""
+    """
+    Trace irréfutable de la transaction Mobile Money en cas de litige.
+    Intégration avec OpenPay API v1.
+    """
     STATUT_CHOICES = [
         ('PENDING', 'En attente'),
         ('SUCCESS', 'Succès'),
-        ('FAILED', 'Échec')
+        ('FAILED', 'Échec'),
+        ('CANCELLED', 'Annulé'),
+        ('EXPIRED', 'Expiré'),
+    ]
+
+    PROVIDER_CHOICES = [
+        ('MTN', 'MTN Mobile Money'),
+        ('AIRTEL', 'Airtel Money'),
+        ('MOOV', 'Moov Money'),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="paiements")
     offre = models.ForeignKey(OffreAbonnement, on_delete=models.PROTECT)
     transaction_id_interne = models.CharField(max_length=100, unique=True, db_index=True)
-    reference_operateur = models.CharField(max_length=100, blank=True, null=True, db_index=True, help_text="ID MTN/Orange")
+    payment_token = models.CharField(max_length=255, blank=True, null=True, db_index=True, help_text="Token de paiement OpenPay")
+    reference_operateur = models.CharField(max_length=100, blank=True, null=True, db_index=True, help_text="ID OpenPay (ex: PTXN26042237B99A5D9)")
+    provider = models.CharField(max_length=20, choices=PROVIDER_CHOICES, default='MTN')
     statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default='PENDING', db_index=True)
     montant_paye = models.PositiveIntegerField()
-    reponse_api_brute = models.TextField(blank=True, null=True, help_text="JSON de l'agrégateur de paiement")
+    payment_phone_number = models.CharField(max_length=20, blank=True, null=True, help_text="Numéro ayant servi au paiement")
+    customer_external_id = models.CharField(max_length=100, blank=True, null=True, help_text="ID client dans le système")
+    payment_url = models.URLField(blank=True, null=True, help_text="Lien de paiement OpenPay (PayLink)")
+    reponse_api_brute = models.TextField(blank=True, null=True, help_text="JSON de la réponse OpenPay")
+    webhook_signature = models.CharField(max_length=255, blank=True, null=True, help_text="Signature du webhook")
+    is_processed = models.BooleanField(default=False, help_text="Évite le traitement en double des webhooks")
     date_creation = models.DateTimeField(auto_now_add=True)
+    date_confirmation = models.DateTimeField(blank=True, null=True, help_text="Date de confirmation du paiement")
+    expire_a = models.DateTimeField(blank=True, null=True, help_text="Date d'expiration du lien de paiement")
+
+    class Meta:
+        verbose_name = "Paiement"
+        verbose_name_plural = "Paiements"
+        ordering = ['-date_creation']
+        indexes = [
+            models.Index(fields=['payment_token']),
+            models.Index(fields=['reference_operateur']),
+            models.Index(fields=['is_processed', 'statut']),
+        ]
 
     def __str__(self):
-        return f"[{self.statut}] {self.transaction_id_interne} - {self.montant_paye}"
+        return f"[{self.statut}] {self.transaction_id_interne} - {self.montant_paye} XAF"
+
+    def marquer_comme_succes(self, reference_operateur=None, reponse_api=None):
+        """Marque le paiement comme réussi et met à jour l'abonnement de l'utilisateur."""
+        if self.is_processed and self.statut == 'SUCCESS':
+            # Déjà traité, éviter les doublons
+            return
+        
+        self.statut = 'SUCCESS'
+        self.reference_operateur = reference_operateur or self.reference_operateur
+        if reponse_api:
+            self.reponse_api_brute = json.dumps(reponse_api)
+        self.date_confirmation = timezone.now()
+        self.is_processed = True
+        self.save()
+
+        # Activer l'abonnement
+        duree_jours = self.offre.duree_jours
+
+        # Récupérer ou créer le profil
+        profile, _ = Profile.objects.get_or_create(user=self.user)
+
+        # Calculer la nouvelle date d'expiration
+        if profile.premium_until and profile.premium_until > timezone.now():
+            nouvelle_date = profile.premium_until + timezone.timedelta(days=duree_jours)
+        else:
+            nouvelle_date = timezone.now() + timezone.timedelta(days=duree_jours)
+
+        profile.premium_until = nouvelle_date
+        profile.save()
+
+        # Créer l'historique d'abonnement
+        Abonnement.objects.create(
+            user=self.user,
+            offre=self.offre,
+            date_fin=nouvelle_date,
+            actif=True
+        )
+
+    def marquer_comme_echec(self, reponse_api=None):
+        """Marque le paiement comme échoué."""
+        self.statut = 'FAILED'
+        if reponse_api:
+            self.reponse_api_brute = json.dumps(reponse_api)
+        self.is_processed = True
+        self.save()
+
+    def marquer_comme_annule(self):
+        """Marque le paiement comme annulé."""
+        self.statut = 'CANCELLED'
+        self.save()
+
+    def verifier_montant(self, montant_recu):
+        """Vérifie que le montant reçu correspond au montant attendu."""
+        return int(montant_recu) == self.montant_paye
 
 
 # ==========================================
 # 5. CONTENU PÉDAGOGIQUE & IA (RAG)
 # ==========================================
+class Categorie(models.Model):
+    """Catégories pour organiser les vidéos (Grammaire, Conjugaison, Exercices, etc.)."""
+    nom = models.CharField(max_length=100, unique=True, help_text="Nom de la catégorie (ex: Grammaire, Conjugaison)")
+    description = models.TextField(blank=True, help_text="Description courte de la catégorie")
+    couleur = models.CharField(max_length=7, default="#3B82F6", help_text="Code couleur hex pour l'affichage (ex: #3B82F6)")
+    icone = models.CharField(max_length=50, blank=True, help_text="Nom de l'icône ou lettre initiale")
+    is_active = models.BooleanField(default=True, help_text="Décocher pour masquer la catégorie")
+    ordre = models.PositiveIntegerField(default=0, help_text="Ordre d'affichage (croissant)")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Catégorie"
+        verbose_name_plural = "Catégories"
+        ordering = ['ordre', 'nom']
+
+    def __str__(self):
+        return self.nom
+
+    @property
+    def video_count(self):
+        """Retourne le nombre de vidéos dans cette catégorie."""
+        return self.videos.filter(is_active=True).count()
+
+
 class Video(models.Model):
     """Stockage des cours du professeur."""
     titre = models.CharField(max_length=255)
     description = models.TextField()
+    categorie = models.ForeignKey(Categorie, on_delete=models.SET_NULL, null=True, blank=True, related_name='videos')
     fichier_video = models.FileField(upload_to='videos_privees/')
     miniature = models.ImageField(upload_to='thumbs/', blank=True, null=True)
     is_free = models.BooleanField(default=False, help_text="Cocher pour offrir cette vidéo gratuitement (Marketing)")
+    is_active = models.BooleanField(default=True, help_text="Décocher pour masquer la vidéo")
     date_publication = models.DateTimeField(auto_now_add=True, db_index=True)
 
     def __str__(self):
@@ -170,7 +281,7 @@ class DocumentIA(models.Model):
         """Sécurité : Vérifie que l'élève ne dépasse pas le stockage autorisé par son offre."""
         if not self.pk:
             current_usage = self.user.documents.aggregate(total=Sum('taille_mb'))['total'] or 0.0
-            active_sub = self.user.get_active_subscription()
+            active_sub = self.user.profile.get_active_subscription()
 
             if not active_sub or not active_sub.offre.can_use_ai_chat:
                 raise ValidationError("Vous devez avoir une offre IA active pour uploader un document.")
