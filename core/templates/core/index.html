@@ -1,0 +1,129 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block content %}
+<!-- Header / Hero Section -->
+<header id="accueil" class="relative pt-16 pb-24 overflow-hidden bg-gradient-to-br from-amber-50 via-yellow-100 to-white">
+    <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none -z-10">
+        <div class="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-yellow-200/40 rounded-full blur-[120px]"></div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col-reverse lg:grid lg:grid-cols-2 lg:gap-12 items-center">
+            
+            <div class="mt-12 lg:mt-0 relative z-10 text-center lg:text-left animate-fade-in-right">
+                <span class="inline-block px-4 py-1.5 rounded-full bg-white/80 text-amber-700 text-xs font-bold uppercase tracking-wider mb-6 shadow-sm border border-amber-100">
+                    Nouvelle Édition Disponible
+                </span>
+                <h1 class="text-4xl md:text-6xl font-extrabold text-slate-900 leading-tight mb-6">
+                    Maîtrisez le Français avec la <span class="text-blue-900 text-shadow-sm">Grammaire Normative</span>
+                </h1>
+                <p class="text-lg text-slate-600 mb-10 leading-relaxed max-w-xl mx-auto lg:mx-0">
+                    Un support pédagogique et linguistique complet destiné aux élèves, étudiants et enseignants pour consolider les bases de la langue française.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                    <a href="#abonnement" class="px-8 py-4 bg-yellow-400 text-blue-900 rounded-xl font-bold text-center hover:bg-blue-900 hover:text-white transition-all shadow-xl shadow-yellow-400/20 hover:-translate-y-1 active:scale-95">
+                        Commencer maintenant
+                    </a>
+                </div>
+            </div>
+
+            <div class="relative flex justify-center items-center lg:pl-12 animate-float-in">
+                <div class="relative z-10 w-full max-w-[280px] sm:max-w-md lg:max-w-none transition-all duration-700 hover:rotate-3 hover:scale-[1.15]">
+                    <img src="{% static 'core/LIVRE1.png' %}" alt="Couverture Grammaire Normative" class="w-full h-auto drop-shadow-[0_45px_45px_rgba(0,0,0,0.25)] filter contrast-[1.05] scale-110 lg:scale-125">
+                </div>
+                
+                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-amber-300/20 rounded-full blur-[120px] -z-10"></div>
+                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-blue-400/10 rounded-full blur-[100px] -z-10"></div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Section Livre -->
+<section id="livre" class="py-24 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl font-bold text-slate-900 sm:text-4xl mb-4">À l'intérieur de l'ouvrage</h2>
+            <p class="text-slate-500 max-w-2xl mx-auto">Une méthode structurée pour faciliter l'assimilation des règles complexes.</p>
+        </div>
+        
+        <div class="grid md:grid-cols-2 gap-16 items-center">
+            <div class="order-2 md:order-1">
+                <img src="{% static 'core/LIVRE2.png' %}" alt="Intérieur du livre" class="rounded-2xl shadow-2xl">
+            </div>
+            
+            <div class="order-1 md:order-2 space-y-8">
+                <div class="flex gap-4">
+                    <div class="flex-shrink-0 w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center text-blue-900 font-bold">01</div>
+                    <div>
+                        <h3 class="text-xl font-bold mb-2">Analyse Logique</h3>
+                        <p class="text-slate-600">Une approche simplifiée pour comprendre la structure des phrases et les fonctions grammaticales.</p>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <div class="flex-shrink-0 w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center text-amber-700 font-bold">02</div>
+                    <div>
+                        <h3 class="text-xl font-bold mb-2">Conjugaison Complète</h3>
+                        <p class="text-slate-600">Tous les temps et modes expliqués avec des exemples clairs pour éviter les pièges courants.</p>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <div class="flex-shrink-0 w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center text-green-700 font-bold">03</div>
+                    <div>
+                        <h3 class="text-xl font-bold mb-2">Exercices d'Application</h3>
+                        <p class="text-slate-600">Des tests à la fin de chaque chapitre pour valider vos acquis et mesurer votre progression.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Section Abonnement -->
+<section id="abonnement" class="py-24 bg-slate-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 class="text-3xl font-bold text-slate-900 mb-4">Choisissez votre plan d'accès</h2>
+        <p class="text-slate-500 mb-12">Accédez à l'intégralité des cours et ressources numériques.</p>
+
+        <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <div class="bg-white p-10 rounded-3xl border border-slate-200 hover:border-red-500 transition-all group relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-4">
+                    <span class="text-red-100 group-hover:text-red-600 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                    </span>
+                </div>
+                <h3 class="text-2xl font-bold mb-4">Standard</h3>
+                <div class="text-4xl font-extrabold text-slate-900 mb-6">2 500 <span class="text-lg font-medium text-slate-400">XAF</span></div>
+                <p class="text-slate-500 mb-8">Accès illimité aux cours pendant 1 mois complet.</p>
+                <ul class="text-left space-y-4 mb-10 text-sm">
+                    <li class="flex items-center gap-3"><svg class="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg> Tous les chapitres</li>
+                    <li class="flex items-center gap-3"><svg class="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg> Exercices corrigés</li>
+                </ul>
+                <button class="w-full py-4 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-colors">S'abonner maintenant</button>
+            </div>
+
+            <div class="bg-blue-900 p-10 rounded-3xl text-white shadow-2xl relative overflow-hidden scale-105">
+                <div class="absolute top-0 right-0 bg-amber-400 text-blue-900 text-[10px] font-bold px-3 py-1 rounded-bl-xl uppercase">Recommandé</div>
+                <h3 class="text-2xl font-bold mb-4">Premium</h3>
+                <div class="text-4xl font-extrabold mb-6">10 000 <span class="text-lg font-medium opacity-60">XAF</span></div>
+                <p class="opacity-80 mb-8 text-white">Accès illimité aux cours pendant 6 mois complets.</p>
+                <ul class="text-left space-y-4 mb-10 text-sm">
+                    <li class="flex items-center gap-3"><svg class="h-5 w-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg> Support prioritaire</li>
+                    <li class="flex items-center gap-3"><svg class="h-5 w-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg> Certificat de réussite</li>
+                </ul>
+                <button class="w-full py-4 bg-amber-400 text-blue-900 rounded-xl font-bold hover:bg-amber-300 transition-colors">Devenir Premium</button>
+            </div>
+        </div>
+
+        <div class="mt-16 flex flex-wrap justify-center gap-8 items-center opacity-60">
+            <span class="text-sm font-bold uppercase tracking-widest w-full mb-4">Moyens de paiement acceptés</span>
+            <div class="flex items-center gap-2 font-bold"><div class="w-8 h-8 rounded bg-red-600 flex items-center justify-center text-white text-[10px]">A</div> Airtel Money</div>
+            <div class="flex items-center gap-2 font-bold"><div class="w-8 h-8 rounded bg-yellow-400 flex items-center justify-center text-black text-[10px]">M</div> MTN Mobile Money</div>
+            <div class="flex items-center gap-2 font-bold"><div class="w-8 h-8 rounded bg-blue-600 flex items-center justify-center text-white text-[10px]">Mo</div> Moov Money</div>
+        </div>
+    </div>
+</section>
+{% endblock %}

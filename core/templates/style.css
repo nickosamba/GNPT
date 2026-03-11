@@ -1,0 +1,15 @@
+/* style.css */
+body, .page-bg {
+    font-family: 'Inter', sans-serif;
+    background-color: #fff9e6; /* Couleur de base crémeuse */
+    background-image: url('image_7.png'); /* URL de votre image de fond dégradé */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed; /* Le fond reste fixe pendant le défilement */
+}
+
+/* Pour Tailwind, nous pouvons créer une classe utilitaire personnalisée */
+@theme {
+  --color-brand-yellow-bg: #fff9e6;
+}

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Échec du paiement - Grammaire</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-amber-50 to-blue-900 min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 text-center">
+        <!-- Logo -->
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-amber-500 to-blue-900 rounded-full text-white text-3xl font-bold mb-6">
+            G
+        </div>
+
+        <!-- Icône d'échec -->
+        <div class="mb-6">
+            <div class="inline-flex items-center justify-center w-20 h-20 bg-red-100 rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </div>
+        </div>
+
+        <!-- Titre -->
+        <h1 class="text-2xl font-bold text-blue-900 mb-2">Paiement échoué</h1>
+        <p class="text-gray-600 mb-6">Nous n'avons pas pu traiter votre transaction.</p>
+
+        <!-- Message d'erreur -->
+        <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div class="flex items-start space-x-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div class="text-left">
+                    <p class="text-sm font-medium text-red-800 mb-1">Raison de l'échec :</p>
+                    <p class="text-sm text-red-700">{{ erreur|default:"Transaction refusée par l'opérateur" }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Détails du paiement -->
+        <div class="bg-gray-50 rounded-lg p-4 mb-6">
+            <div class="space-y-2 text-sm">
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Montant</span>
+                    <span class="font-semibold text-gray-900">{{ paiement.montant_paye }} FCFA</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Offre</span>
+                    <span class="font-medium text-gray-900">{{ paiement.offre.nom }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Opérateur</span>
+                    <span class="font-medium text-gray-900">{{ paiement.get_provider_display }}</span>
+                </div>
+                {% if paiement.reference_operateur %}
+                <div class="border-t border-gray-200 pt-2 mt-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Référence</span>
+                        <span class="font-mono text-xs text-gray-900">{{ paiement.reference_operateur }}</span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Conseils -->
+        <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6 text-left">
+            <p class="text-sm font-medium text-amber-800 mb-2">Conseils pour réussir votre paiement :</p>
+            <ul class="text-sm text-amber-700 space-y-1">
+                <li class="flex items-start">
+                    <span class="text-amber-500 mr-2">•</span>
+                    <span>Vérifiez que votre solde est suffisant</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="text-amber-500 mr-2">•</span>
+                    <span>Assurez-vous que le numéro est correct</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="text-amber-500 mr-2">•</span>
+                    <span>Vérifiez votre connexion réseau</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="text-amber-500 mr-2">•</span>
+                    <span>Contactez votre opérateur en cas de problème</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Boutons d'action -->
+        <div class="space-y-3">
+            <button
+                onclick="window.location.reload()"
+                class="block w-full bg-gradient-to-r from-amber-500 to-amber-600 text-white font-semibold py-3 rounded-lg hover:from-amber-600 hover:to-amber-700 transition-all duration-200 shadow-lg"
+            >
+                Réessayer le paiement
+            </button>
+            <a
+                href="{% url 'dashboard' %}"
+                class="block w-full bg-white text-blue-900 font-semibold py-3 rounded-lg border-2 border-blue-900 hover:bg-blue-50 transition-all duration-200"
+            >
+                Retour au dashboard
+            </a>
+        </div>
+
+        <!-- Support -->
+        <div class="mt-6 pt-6 border-t border-gray-200">
+            <p class="text-xs text-gray-500 mb-2">Besoin d'aide ?</p>
+            <a href="mailto:support@grammaire.com" class="text-sm text-amber-600 hover:text-amber-700 font-medium">
+                support@grammaire.com
+            </a>
+        </div>
+    </div>
+</body>
+</html>

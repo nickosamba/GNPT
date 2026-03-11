@@ -1,15 +1,394 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib import messages
+from django.http import JsonResponse, HttpResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from django.utils import timezone
+import json
+import uuid
+import logging
+
+from .models import OffreAbonnement, Paiement, Profile, Abonnement
+from .openpay_service import openpay_service, OpenPayError, OPENPAY_API_KEY
+
+logger = logging.getLogger(__name__)
 
 
-def home(request):
-    """Page d'accueil avec redirection vers login si non connecté."""
+def index(request):
+    """Page d'accueil publique."""
+    return render(request, "core/index.html")
+
+
+def connexion(request):
+    """Page de connexion avec support Google OAuth et formulaire classique."""
     if request.user.is_authenticated:
-        return render(request, "core/home.html", {"user": request.user})
-    return render(request, "core/home.html")
+        return redirect("dashboard")
+
+    if request.method == "POST":
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            messages.success(request, "Connexion réussie ! Bienvenue.")
+            return redirect("dashboard")
+    else:
+        form = AuthenticationForm()
+
+    return render(request, "core/connexion.html", {"form": form})
+
+
+@login_required
+def deconnexion(request):
+    """Déconnexion de l'utilisateur."""
+    logout(request)
+    messages.info(request, "Vous avez été déconnecté avec succès.")
+    return redirect("index")
 
 
 @login_required
 def dashboard(request):
     """Tableau de bord utilisateur connecté."""
-    return render(request, "core/dashboard.html", {"user": request.user})
+    from .models import OffreAbonnement, Paiement
+    offres = OffreAbonnement.objects.all()
+    # Récupérer les 5 derniers paiements de l'utilisateur
+    paiements = Paiement.objects.filter(user=request.user).order_by('-date_creation')[:5]
+    return render(request, "core/dashboard.html", {"user": request.user, "offres": offres, "paiements": paiements})
+
+
+@login_required
+def initier_paiement(request, offre_id):
+    """
+    Initie un paiement pour un abonnement donné via PayLink OpenPay.
+    Crée un lien de paiement et redirige l'utilisateur vers la page sécurisée OpenPay.
+
+    Logic:
+    - Prend un 'offre_id'
+    - Génère une transaction interne
+    - Appelle l'endpoint /v1/payment-link d'OpenPay avec XO-API-KEY
+    - Enregistre le paiement en PENDING
+    - Redirige vers payment_url
+    """
+    # Vérifier que la clé API est configurée
+    if not OPENPAY_API_KEY:
+        messages.error(request, "Configuration manquante : La clé API OpenPay n'est pas configurée. Contactez l'administrateur.")
+        return redirect('dashboard')
+    
+    offre = get_object_or_404(OffreAbonnement, id=offre_id)
+    profile = request.user.profile
+
+    if request.method == "POST":
+        telephone = request.POST.get('telephone', '').replace(' ', '').replace('-', '')
+        provider = request.POST.get('provider', 'MTN')
+
+        # Nettoyer le numéro (format international sans +)
+        if telephone.startswith('+'):
+            telephone = telephone[1:]
+        
+        # Si le numéro commence par 0, ajouter l'indicatif Congo (242)
+        if telephone.startswith('0'):
+            telephone = '242' + telephone[1:]
+        
+        # Si le numéro est trop court (sans indicatif), ajouter 242
+        if len(telephone) < 9:
+            telephone = '242' + telephone
+
+        # Validation : le numéro doit avoir entre 9 et 15 chiffres (standard international)
+        if not telephone.isdigit() or len(telephone) < 9 or len(telephone) > 15:
+            messages.error(request, f"Numéro de téléphone invalide. Format attendu: 242066203420")
+            # Rester sur la page de paiement avec les données saisies
+            return render(request, "core/paiement.html", {
+                "offre": offre, 
+                "profile": profile,
+                "telephone": request.POST.get('telephone', ''),
+                "provider": provider
+            })
+
+        # Générer un ID de transaction unique
+        transaction_id = f"TXN_{uuid.uuid4().hex[:12].upper()}"
+        customer_external_id = f"USER_{request.user.id}"
+
+        # URLs de retour
+        success_url = request.build_absolute_uri('/paiement/succes/')
+        cancel_url = request.build_absolute_uri('/paiement/annule/')
+
+        # Créer le paiement en base de données
+        paiement = Paiement.objects.create(
+            user=request.user,
+            offre=offre,
+            transaction_id_interne=transaction_id,
+            customer_external_id=customer_external_id,
+            payment_phone_number=telephone,
+            provider=provider,
+            montant_paye=offre.prix,
+            statut='PENDING'
+        )
+
+        # Informations client
+        customer = {
+            "name": f"{request.user.first_name} {request.user.last_name}".strip() or request.user.username,
+            "phone": telephone,
+            "email": request.user.email
+        }
+
+        # Métadonnées pour le suivi
+        metadata = {
+            "order_id": transaction_id,
+            "user_id": request.user.id,
+            "offre_id": offre.id,
+            "paiement_id": paiement.id
+        }
+
+        try:
+            # Créer le PayLink via OpenPay
+            result = openpay_service.creer_paylink(
+                montant=offre.prix,
+                description=f"Abonnement - {offre.nom}",
+                customer=customer,
+                metadata=metadata,
+                expires_at=24,  # 24 heures
+                success_url=success_url,
+                cancel_url=cancel_url
+            )
+
+            if result['success']:
+                # Mettre à jour le paiement avec le lien de paiement
+                paiement.payment_token = result.get('payment_token')
+                paiement.reference_operateur = result.get('reference') or result.get('payment_token')
+                paiement.payment_url = result.get('payment_url')
+                paiement.reponse_api_brute = json.dumps(result.get('data', {}))
+                paiement.save()
+
+                logger.info(f"PayLink créé: {paiement.payment_token} pour {request.user.email}")
+
+                # Rediriger vers le lien de paiement OpenPay
+                return redirect(result.get('payment_url'))
+            else:
+                paiement.marquer_comme_echec()
+                messages.error(request, f"Échec de l'initiation du paiement: {result.get('error')}")
+                return render(request, "core/paiement.html", {
+                    "offre": offre, 
+                    "profile": profile,
+                    "telephone": telephone,
+                    "provider": provider
+                })
+
+        except OpenPayError as e:
+            logger.error(f"Erreur OpenPay: {e.message} (status: {e.status_code})")
+            paiement.marquer_comme_echec({'error': e.message})
+            messages.error(request, f"Erreur de paiement: {e.message}")
+            return render(request, "core/paiement.html", {
+                "offre": offre, 
+                "profile": profile,
+                "telephone": telephone,
+                "provider": provider
+            })
+        except Exception as e:
+            logger.error(f"Erreur inattendue: {str(e)}")
+            paiement.marquer_comme_echec({'error': str(e)})
+            messages.error(request, "Erreur technique lors du paiement")
+            return render(request, "core/paiement.html", {
+                "offre": offre, 
+                "profile": profile,
+                "telephone": telephone,
+                "provider": provider
+            })
+
+    return render(request, "core/paiement.html", {"offre": offre, "profile": profile})
+
+
+@login_required
+def paiement_succes(request):
+    """Page de succès après paiement."""
+    paiement = Paiement.objects.filter(
+        user=request.user,
+        statut='SUCCESS'
+    ).order_by('-date_creation').first()
+
+    if not paiement:
+        messages.warning(request, "Aucun paiement réussi trouvé.")
+        return redirect('dashboard')
+
+    return render(request, "core/paiement_succes.html", {"paiement": paiement})
+
+
+@login_required
+def paiement_annule(request):
+    """Page d'annulation de paiement."""
+    messages.info(request, "Le paiement a été annulé.")
+    return render(request, "core/paiement_echec.html", {"annule": True})
+
+
+@csrf_exempt
+@require_POST
+def paiement_callback(request):
+    """
+    Endpoint callback pour les notifications de paiement OpenPay.
+    Reçoit les notifications de changement de statut et active l'abonnement.
+    
+    Logic:
+    - Reçoit la notification de paiement (POST)
+    - Valide les données reçues
+    - Trouve le paiement via payment_id ou référence
+    - Met à jour le statut et active l'abonnement si succès
+    """
+    try:
+        # Récupérer les données du callback
+        data = json.loads(request.body.decode('utf-8'))
+        
+        reference = data.get('reference')
+        statut = data.get('status')
+        metadata = data.get('metadata', {})
+        montant_recu = data.get('amount')
+        payment_token = data.get('payment_token')
+        
+        # Récupérer le paiement via payment_id ou référence
+        paiement_id = metadata.get('paiement_id')
+        
+        if paiement_id:
+            paiement = Paiement.objects.get(id=paiement_id)
+        elif reference:
+            paiement = Paiement.objects.filter(reference_operateur=reference).first()
+        else:
+            logger.error("Aucun identifiant de paiement dans le callback")
+            return JsonResponse({'error': 'paiement_id manquant dans metadata'}, status=400)
+        
+        if not paiement:
+            logger.error(f"Paiement non trouvé: {paiement_id or reference}")
+            return JsonResponse({'error': 'Paiement non trouvé'}, status=404)
+        
+        # Éviter le traitement en double
+        if paiement.is_processed and paiement.statut in ['SUCCESS', 'FAILED', 'CANCELLED']:
+            logger.info(f"Paiement déjà traité: {paiement.transaction_id_interne}")
+            return JsonResponse({'status': 'ok', 'message': 'Déjà traité'})
+        
+        # Security: Vérifier le montant reçu vs le montant attendu
+        if montant_recu and not paiement.verifier_montant(montant_recu):
+            logger.warning(f"Discordance de montant pour {paiement.transaction_id_interne}: attendu {paiement.montant_paye}, reçu {montant_recu}")
+        
+        # Traiter selon le statut
+        if statut == 'success':
+            paiement.marquer_comme_succes(
+                reference_operateur=reference,
+                reponse_api=data
+            )
+            logger.info(f"Paiement confirmé via callback: {paiement.transaction_id_interne}")
+            return JsonResponse({'status': 'ok', 'message': 'Paiement confirmé', 'abonnement_active': True})
+        
+        elif statut in ('failed', 'cancelled', 'expired'):
+            if statut == 'cancelled':
+                paiement.marquer_comme_annule()
+            else:
+                paiement.marquer_comme_echec(reponse_api=data)
+            logger.info(f"Paiement {statut} via callback: {paiement.transaction_id_interne}")
+            return JsonResponse({'status': 'ok', 'message': f'Paiement {statut} enregistré'})
+        
+        logger.info(f"Callback reçu statut {statut}: {paiement.transaction_id_interne}")
+        return JsonResponse({'status': 'ok', 'message': 'Callback reçu'})
+    
+    except Paiement.DoesNotExist:
+        logger.error(f"Paiement non trouvé pour callback")
+        return JsonResponse({'error': 'Paiement non trouvé'}, status=404)
+    except json.JSONDecodeError:
+        logger.error(f"JSON invalide dans le callback")
+        return JsonResponse({'error': 'JSON invalide'}, status=400)
+    except OpenPayError as e:
+        logger.error(f"Erreur OpenPay dans callback: {e.message}")
+        return JsonResponse({'error': e.message}, status=500)
+    except Exception as e:
+        logger.error(f"Erreur inattendue dans callback: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_POST
+def webhook_openpay(request):
+    """
+    Vue POST (csrf_exempt) pour recevoir les notifications asynchrones d'OpenPay.
+    Doit valider la signature et mettre à jour le statut de l'abonnement.
+    
+    Logic:
+    - Reçoit les notifications webhook d'OpenPay
+    - Valide la signature du webhook
+    - Récupère le paiement via le payment_id dans les métadonnées
+    - Vérifie le montant reçu vs le montant attendu en BDD
+    - Met à jour le statut de l'abonnement
+    - Gère les timeouts de l'API avec des blocs try/except
+    """
+    try:
+        # Récupérer le body brut pour la vérification de signature
+        body = request.body.decode('utf-8')
+        signature = request.headers.get('X-OpenPay-Signature', '')
+        
+        # Vérifier la signature (optionnel en dev, requis en prod)
+        if not openpay_service.verifier_signature_webhook(body, signature):
+            logger.warning(f"Signature invalide pour le webhook")
+            return JsonResponse({'error': 'Signature invalide'}, status=401)
+
+        data = json.loads(body)
+
+        # Extraire les informations du webhook
+        reference = data.get('reference')
+        statut = data.get('status')
+        metadata = data.get('metadata', {})
+        montant_recu = data.get('amount')
+        
+        # Essayer de récupérer le paiement par payment_id ou par référence
+        paiement_id = metadata.get('paiement_id')
+        
+        if paiement_id:
+            paiement = Paiement.objects.get(id=paiement_id)
+        elif reference:
+            paiement = Paiement.objects.filter(reference_operateur=reference).first()
+        else:
+            logger.error("Aucun identifiant de paiement dans le webhook")
+            return JsonResponse({'error': 'paiement_id manquant dans metadata'}, status=400)
+
+        if not paiement:
+            logger.error(f"Paiement non trouvé: {paiement_id or reference}")
+            return JsonResponse({'error': 'Paiement non trouvé'}, status=404)
+        
+        # Éviter le traitement en double
+        if paiement.is_processed and paiement.statut in ['SUCCESS', 'FAILED', 'CANCELLED']:
+            logger.info(f"Paiement déjà traité: {paiement.transaction_id_interne}")
+            return JsonResponse({'status': 'ok', 'message': 'Déjà traité'})
+        
+        # Security: Vérifier le montant reçu vs le montant attendu en BDD
+        if montant_recu and not paiement.verifier_montant(montant_recu):
+            logger.warning(f"Discordance de montant pour {paiement.transaction_id_interne}: attendu {paiement.montant_paye}, reçu {montant_recu}")
+            # Ne pas bloquer, mais logger l'anomalie
+        
+        # Traiter selon le statut
+        if statut == 'success':
+            paiement.marquer_comme_succes(
+                reference_operateur=reference,
+                reponse_api=data
+            )
+            logger.info(f"Paiement confirmé via webhook: {paiement.transaction_id_interne}")
+            return JsonResponse({'status': 'ok', 'message': 'Paiement confirmé'})
+
+        elif statut in ('failed', 'cancelled', 'expired'):
+            if statut == 'cancelled':
+                paiement.marquer_comme_annule()
+            else:
+                paiement.marquer_comme_echec(reponse_api=data)
+            logger.info(f"Paiement {statut} via webhook: {paiement.transaction_id_interne}")
+            return JsonResponse({'status': 'ok', 'message': f'Paiement {statut} enregistré'})
+
+        logger.info(f"Webhook reçu statut {statut}: {paiement.transaction_id_interne}")
+        return JsonResponse({'status': 'ok', 'message': 'Webhook reçu'})
+
+    except Paiement.DoesNotExist:
+        logger.error(f"Paiement non trouvé pour webhook")
+        return JsonResponse({'error': 'Paiement non trouvé'}, status=404)
+    except json.JSONDecodeError:
+        logger.error(f"JSON invalide dans le webhook")
+        return JsonResponse({'error': 'JSON invalide'}, status=400)
+    except OpenPayError as e:
+        logger.error(f"Erreur OpenPay dans webhook: {e.message}")
+        return JsonResponse({'error': e.message}, status=500)
+    except Exception as e:
+        logger.error(f"Erreur inattendue dans webhook: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=500)
