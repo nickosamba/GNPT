@@ -1,169 +1,350 @@
-{% extends "core/base.html" %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Grammaire Normative</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    {% load static %}
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-attachment: fixed;
+            background-size: cover;
+            background-position: center;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="min-h-screen antialiased">
 
-{% block title %}Tableau de bord - Grammaire{% endblock %}
+    <nav class="sticky top-0 z-50 glass-panel shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-blue-900 rounded-xl flex items-center justify-center text-white font-black text-2xl shadow-lg">G</div>
+                    <span class="hidden md:block font-extrabold text-slate-900 tracking-tight text-xl">GRAMMAIRE NORMATIVE</span>
+                </div>
 
-{% block content %}
-<section class="hero-section" style="padding-top: 120px;">
-    <div class="container">
-        <h1>Tableau de bord</h1>
-        <p>Bienvenue, {{ user.first_name|default:user.username }} !</p>
-    </div>
-</section>
-
-<section class="py-5" style="background: white;">
-    <div class="container">
-        <div class="row g-4">
-            <!-- Profile Card -->
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body text-center p-4">
-                        <div class="mb-3">
-                            {% if user.profile.avatar %}
-                                <img src="{{ user.profile.avatar.url }}" alt="Avatar" class="rounded-circle" width="100" height="100" style="object-fit: cover;">
-                            {% else %}
-                                <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 100px; height: 100px; font-size: 2.5rem;">
-                                    {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
-                                </div>
-                            {% endif %}
-                        </div>
-                        <h4 class="mb-1">{{ user.get_full_name|default:user.username }}</h4>
-                        <p class="text-muted mb-3">{{ user.email }}</p>
-                        {% if user.profile.is_premium %}
-                            <span class="badge bg-warning text-dark">
-                                <i class="bi bi-star-fill"></i> Premium
-                            </span>
+                <div class="flex items-center gap-6">
+                    <div class="text-right hidden sm:block">
+                        <p class="text-sm font-bold text-slate-900 leading-none">Bonjour {{ user.first_name|default:user.username }}</p>
+                        {% if user.profile.is_premium and user.profile.premium_until %}
+                            <p class="text-xs font-medium text-blue-700 mt-1 italic">{{ user.profile.premium_until|timeuntil }} restants</p>
                         {% else %}
-                            <span class="badge bg-secondary">
-                                <i class="bi bi-person"></i> Gratuit
-                            </span>
+                            <p class="text-xs font-medium text-slate-500 mt-1 italic">Compte Gratuit</p>
                         {% endif %}
                     </div>
+                    <div class="w-12 h-12 rounded-full border-2 border-white shadow-md flex overflow-hidden items-center justify-center bg-white">
+                        {% if user.profile.avatar %}
+                            <img src="{{ user.profile.avatar.url }}" alt="Avatar" class="w-full h-full object-cover">
+                        {% else %}
+                            <span class="text-blue-900 font-black text-lg">{{ user.first_name|first|upper }}</span>
+                        {% endif %}
+                    </div>
+                    <form method="post" action="{% url 'account_logout' %}" class="ml-2">
+                        {% csrf_token %}
+                        <button type="submit" class="text-sm font-bold text-red-600 hover:text-red-700 transition-colors flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                            </svg>
+                            <span class="hidden lg:inline">Déconnexion</span>
+                        </button>
+                    </form>
                 </div>
             </div>
-            
-            <!-- Stats Card -->
-            <div class="col-md-8">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body p-4">
-                        <h3 class="mb-4">
-                            <i class="bi bi-graph-up text-primary"></i>
-                            Vos Statistiques
-                        </h3>
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <div class="p-3 bg-light rounded">
-                                    <div class="d-flex align-items-center">
-                                        <i class="bi bi-play-circle text-primary fs-3 me-3"></i>
-                                        <div>
-                                            <h2 class="mb-0">{{ user.videos_watched|default:0 }}</h2>
-                                            <small class="text-muted">Vidéos vues</small>
-                                        </div>
-                                    </div>
-                                </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12">
+
+        <!-- Slider Section -->
+        <section class="relative group px-4 md:px-0" id="slider-container">
+            <div id="slider" class="flex overflow-x-auto snap-x snap-mandatory no-scrollbar gap-6 pb-4 scroll-smooth">
+
+                <div class="min-w-full snap-center">
+                    <div class="w-full bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-950 rounded-[2.5rem] p-6 md:p-10 text-white shadow-2xl overflow-hidden relative min-h-[350px] md:min-h-[420px] flex items-center">
+                        <div class="absolute -top-24 -right-24 w-96 h-96 bg-white/10 rounded-full blur-[100px]"></div>
+                        <div class="relative z-10 w-full md:flex items-center justify-between gap-10">
+                            <div class="max-w-xl">
+                                <span class="inline-block bg-amber-400 text-blue-900 text-[10px] font-black px-3 py-1 rounded-full mb-4 tracking-widest uppercase">Nouveauté</span>
+                                <h2 class="text-2xl md:text-4xl font-black leading-tight mb-3 uppercase tracking-tighter">
+                                    Maîtrisez la langue française <br>
+                                    <span class="text-amber-400">Édition Normative</span>
+                                </h2>
+                                <p class="text-sm md:text-base opacity-80 mb-6 font-medium max-w-md">La référence complète pour optimiser votre apprentissage de la grammaire.</p>
+                                <a href="#abonnement" class="inline-block bg-amber-400 text-blue-900 px-8 py-3 rounded-xl text-base font-black shadow-xl hover:bg-white hover:scale-105 transition-all">S'ABONNER MAINTENANT</a>
                             </div>
-                            <div class="col-6">
-                                <div class="p-3 bg-light rounded">
-                                    <div class="d-flex align-items-center">
-                                        <i class="bi bi-file-earmark-text text-success fs-3 me-3"></i>
-                                        <div>
-                                            <h2 class="mb-0">{{ user.documents.count|default:0 }}</h2>
-                                            <small class="text-muted">Documents</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="p-3 bg-light rounded">
-                                    <div class="d-flex align-items-center">
-                                        <i class="bi bi-chat-square-text text-info fs-3 me-3"></i>
-                                        <div>
-                                            <h2 class="mb-0">{{ user.commentaires.count|default:0 }}</h2>
-                                            <small class="text-muted">Commentaires</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="p-3 bg-light rounded">
-                                    <div class="d-flex align-items-center">
-                                        <i class="bi bi-heart text-danger fs-3 me-3"></i>
-                                        <div>
-                                            <h2 class="mb-0">{{ user.likes.count|default:0 }}</h2>
-                                            <small class="text-muted">Likes</small>
-                                        </div>
+
+                            <div class="hidden lg:flex flex-col items-center gap-6 mr-10">
+                                <div class="relative group/book">
+                                    <div class="absolute inset-0 bg-amber-400/20 blur-[80px] rounded-full scale-125"></div>
+                                    <div class="relative w-64 h-80 transform rotate-[6deg] group-hover/book:rotate-0 transition-all duration-500 ease-out">
+                                        <img src="{% static 'core/LIVRE1.png' %}" alt="Couverture" class="w-full h-full object-contain drop-shadow-[20px_30px_50px_rgba(0,0,0,0.5)] transform scale-[1.5] group-hover/book:scale-[1.6]">
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        
-                        {% if user.profile.is_premium %}
-                            <div class="mt-4 p-3 bg-warning bg-opacity-10 rounded">
-                                <div class="d-flex align-items-center">
-                                    <i class="bi bi-clock-history text-warning fs-4 me-3"></i>
-                                    <div>
-                                        <strong>Abonnement Premium actif</strong>
-                                        {% if user.profile.premium_until %}
-                                            <p class="mb-0 text-muted small">
-                                                Expire le : {{ user.profile.premium_until|date:"d/m/Y à H:i" }}
-                                            </p>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                        {% else %}
-                            <div class="mt-4 p-3 bg-primary bg-opacity-10 rounded">
-                                <div class="d-flex align-items-center">
-                                    <i class="bi bi-stars text-primary fs-4 me-3"></i>
-                                    <div>
-                                        <strong>Passez Premium !</strong>
-                                        <p class="mb-0 text-muted small">
-                                            Débloquez toutes les fonctionnalités : IA, stockage illimité, et plus encore.
-                                        </p>
-                                    </div>
-                                </div>
-                                <a href="#" class="btn btn-primary btn-sm mt-2">
-                                    <i class="bi bi-arrow-right"></i> Voir les offres
-                                </a>
-                            </div>
-                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="min-w-full snap-center">
+                    <div class="w-full bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 rounded-[2.5rem] p-6 md:p-10 text-white shadow-2xl overflow-hidden relative min-h-[350px] md:min-h-[420px] flex items-center">
+                        <div class="relative z-10">
+                            <h2 class="text-2xl md:text-4xl font-black leading-tight mb-3 uppercase">Cours Avancés <br><span class="text-purple-400">en ligne</span></h2>
+                            <p class="text-sm md:text-base opacity-80 mb-6 font-medium max-w-md">Accédez à des centaines d'exercices interactifs de conjugaison.</p>
+                            <a href="#" class="inline-block bg-purple-500 text-white px-8 py-3 rounded-xl text-base font-black shadow-xl">COMMENCER</a>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <div class="flex justify-center gap-2 mt-4" id="dots">
+                <div class="dot w-6 h-1.5 bg-blue-900 rounded-full transition-all"></div>
+                <div class="dot w-1.5 h-1.5 bg-slate-300 rounded-full transition-all"></div>
+            </div>
+        </section>
+
+        <!-- Catégories Section -->
+        <section>
+            <div class="flex items-end justify-between mb-8">
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 uppercase tracking-tight">Catégories</h3>
+                    <div class="h-1 w-12 bg-amber-400 mt-1"></div>
+                </div>
+                <a href="#" class="text-blue-900 font-bold hover:underline">Voir tout le catalogue</a>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="glass-panel p-6 rounded-[2rem] flex items-center gap-5 hover:bg-white transition-all cursor-pointer group shadow-sm hover:shadow-xl border-white">
+                    <div class="w-16 h-16 bg-blue-900 text-white rounded-2xl flex items-center justify-center font-black text-2xl group-hover:rotate-6 transition-transform shadow-lg shadow-blue-900/20">G</div>
+                    <div>
+                        <h4 class="font-bold text-slate-900 text-lg leading-none">Grammaire</h4>
+                        <p class="text-sm text-slate-500 mt-1 font-medium">Les règles normatives</p>
+                    </div>
+                    <div class="ml-auto w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-blue-900 group-hover:text-white transition-all">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-6 rounded-[2rem] flex items-center gap-5 hover:bg-white transition-all cursor-pointer group shadow-sm hover:shadow-xl border-white">
+                    <div class="w-16 h-16 bg-amber-500 text-white rounded-2xl flex items-center justify-center font-black text-2xl group-hover:rotate-6 transition-transform shadow-lg shadow-amber-500/20">C</div>
+                    <div>
+                        <h4 class="font-bold text-slate-900 text-lg leading-none">Conjugaison</h4>
+                        <p class="text-sm text-slate-500 mt-1 font-medium">Temps et modes</p>
+                    </div>
+                    <div class="ml-auto w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-amber-500 group-hover:text-white transition-all">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-6 rounded-[2rem] flex items-center gap-5 hover:bg-white transition-all cursor-pointer group shadow-sm hover:shadow-xl border-white">
+                    <div class="w-16 h-16 bg-emerald-600 text-white rounded-2xl flex items-center justify-center font-black text-2xl group-hover:rotate-6 transition-transform shadow-lg shadow-emerald-600/20">E</div>
+                    <div>
+                        <h4 class="font-bold text-slate-900 text-lg leading-none">Exercices</h4>
+                        <p class="text-sm text-slate-500 mt-1 font-medium">Pratique interactive</p>
+                    </div>
+                    <div class="ml-auto w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-emerald-600 group-hover:text-white transition-all">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recommandé Section -->
+        <section>
+            <div class="mb-8">
+                <h3 class="text-2xl font-black text-slate-900 uppercase tracking-tight">Recommandé pour vous</h3>
+                <div class="h-1 w-12 bg-blue-900 mt-1"></div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="glass-panel p-4 rounded-3xl flex gap-6 items-center group cursor-pointer hover:shadow-lg transition-all border-white/60">
+                    <div class="w-40 h-28 bg-indigo-900 rounded-2xl flex-shrink-0 relative overflow-hidden shadow-md">
+                        <div class="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div class="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/40">
+                                <svg class="w-5 h-5 text-white fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            </div>
+                        </div>
+                        <div class="p-4 text-white text-[10px] font-bold leading-tight">MODULE VIDÉO<br>D'EXPLICATION</div>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-black text-blue-700 uppercase tracking-widest">Niveau Avancé</span>
+                        <h5 class="text-lg font-bold text-slate-900 leading-tight my-1 group-hover:text-blue-900 transition-colors">Maîtriser les accords complexes des participes passés</h5>
+                        <p class="text-sm text-slate-500 font-medium">12k vues • 8 min de lecture</p>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-4 rounded-3xl flex gap-6 items-center group cursor-pointer hover:shadow-lg transition-all border-white/60">
+                    <div class="w-40 h-28 bg-emerald-900 rounded-2xl flex-shrink-0 relative overflow-hidden shadow-md">
+                        <div class="p-4 text-white text-[10px] font-bold leading-tight">EXERCICES<br>PRATIQUES</div>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-black text-emerald-700 uppercase tracking-widest">Débutant</span>
+                        <h5 class="text-lg font-bold text-slate-900 leading-tight my-1 group-hover:text-blue-900 transition-colors">Les fondamentaux du présent de l'indicatif</h5>
+                        <p class="text-sm text-slate-500 font-medium">8k vues • 15 min de quiz</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section Abonnement -->
+        <section id="abonnement">
+            <div class="flex items-end justify-between mb-8">
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 uppercase tracking-tight">Choisissez votre plan</h3>
+                    <div class="h-1 w-12 bg-amber-400 mt-1"></div>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                {% for offre in offres %}
+                <div class="glass-panel p-8 rounded-3xl border-2 {% if offre.prix > 5000 %}border-amber-400 bg-gradient-to-br from-amber-50 to-white{% else %}border-slate-200{% endif %} relative overflow-hidden hover:shadow-2xl transition-all">
+                    {% if offre.prix > 5000 %}
+                    <div class="absolute top-0 right-0 bg-amber-400 text-blue-900 text-xs font-bold px-4 py-2 rounded-bl-2xl uppercase">Recommandé</div>
+                    {% endif %}
+
+                    <div class="mb-6">
+                        <h4 class="text-2xl font-black text-slate-900 mb-2">{{ offre.nom }}</h4>
+                        <div class="flex items-baseline gap-2">
+                            <span class="text-4xl font-black text-blue-900">{{ offre.prix }}</span>
+                            <span class="text-slate-500 font-bold">XAF / {{ offre.duree_jours }} jours</span>
+                        </div>
+                    </div>
+
+                    <ul class="space-y-3 mb-8">
+                        {% if offre.can_access_videos %}
+                        <li class="flex items-center gap-3 text-sm">
+                            <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
+                            <span class="text-slate-700 font-medium">Accès aux vidéos</span>
+                        </li>
+                        {% endif %}
+                        {% if offre.can_access_books %}
+                        <li class="flex items-center gap-3 text-sm">
+                            <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
+                            <span class="text-slate-700 font-medium">Accès aux livres</span>
+                        </li>
+                        {% endif %}
+                        {% if offre.can_use_ai_chat %}
+                        <li class="flex items-center gap-3 text-sm">
+                            <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
+                            <span class="text-slate-700 font-medium">IA Chat ({{ offre.storage_limit_mb }} Mo)</span>
+                        </li>
+                        {% endif %}
+                    </ul>
+
+                    <a href="{% url 'initier_paiement' offre.id %}" class="block w-full py-4 {% if offre.prix > 5000 %}bg-amber-400 text-blue-900 hover:bg-amber-300{% else %}bg-blue-900 text-white hover:bg-blue-800{% endif %} rounded-xl font-black text-center transition-all hover:scale-[1.02] active:scale-[0.98]">
+                        S'ABONNER MAINTENANT
+                    </a>
+                </div>
+                {% empty %}
+                <div class="col-span-2 text-center py-12 glass-panel rounded-3xl">
+                    <p class="text-slate-500">Aucune offre disponible pour le moment.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- Historique des paiements -->
+        <section>
+            <div class="flex items-end justify-between mb-8">
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 uppercase tracking-tight">Historique des paiements</h3>
+                    <div class="h-1 w-12 bg-blue-900 mt-1"></div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-3xl shadow-xl overflow-hidden">
+                <table class="w-full">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Date</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Offre</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Montant</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Statut</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Référence</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        {% for paiement in paiements %}
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="px-6 py-4 text-sm text-slate-700">{{ paiement.date_creation|date:"d/m/Y H:i" }}</td>
+                            <td class="px-6 py-4 text-sm font-bold text-slate-900">{{ paiement.offre.nom }}</td>
+                            <td class="px-6 py-4 text-sm font-bold text-amber-600">{{ paiement.montant_paye }} XAF</td>
+                            <td class="px-6 py-4">
+                                <span class="px-3 py-1 rounded-full text-xs font-bold
+                                    {% if paiement.statut == 'SUCCESS' %}bg-green-100 text-green-700
+                                    {% elif paiement.statut == 'PENDING' %}bg-yellow-100 text-yellow-700
+                                    {% else %}bg-red-100 text-red-700{% endif %}">
+                                    {{ paiement.get_statut_display }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-sm font-mono text-slate-500">{{ paiement.reference_operateur|default:"-" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="px-6 py-8 text-center text-slate-500">
+                                Aucun paiement pour le moment.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="glass-panel mt-12 py-10 border-t">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-slate-500 text-sm font-medium">© 2026 Grammaire Normative - Tous droits réservés.</p>
         </div>
-        
-        <!-- Quick Actions -->
-        <div class="row g-4 mt-4">
-            <div class="col-12">
-                <h3 class="mb-3">
-                    <i class="bi bi-lightning-charge text-warning"></i>
-                    Actions rapides
-                </h3>
-            </div>
-            <div class="col-md-3">
-                <a href="{% url 'video' %}" class="btn btn-outline-primary w-100 h-100 py-4">
-                    <i class="bi bi-camera-video fs-4 d-block mb-2"></i>
-                    Vidéos
-                </a>
-            </div>
-            <div class="col-md-3">
-                <a href="#" class="btn btn-outline-success w-100 h-100 py-4">
-                    <i class="bi bi-file-earmark-pdf fs-4 d-block mb-2"></i>
-                    Documents IA
-                </a>
-            </div>
-            <div class="col-md-3">
-                <a href="#" class="btn btn-outline-info w-100 h-100 py-4">
-                    <i class="bi bi-chat-dots fs-4 d-block mb-2"></i>
-                    Chat IA
-                </a>
-            </div>
-            <div class="col-md-3">
-                <a href="#" class="btn btn-outline-secondary w-100 h-100 py-4">
-                    <i class="bi bi-gear fs-4 d-block mb-2"></i>
-                    Paramètres
-                </a>
-            </div>
-        </div>
-    </div>
-</section>
-{% endblock %}
+    </footer>
+
+    <script>
+    const slider = document.getElementById('slider');
+    const dots = document.querySelectorAll('.dot');
+    let scrollInterval;
+
+    function startAutoScroll() {
+        scrollInterval = setInterval(() => {
+            const slideWidth = slider.clientWidth;
+            const maxScroll = slider.scrollWidth - slideWidth;
+
+            if (slider.scrollLeft >= maxScroll - 10) {
+                slider.scrollTo({ left: 0, behavior: 'smooth' });
+            } else {
+                slider.scrollBy({ left: slideWidth, behavior: 'smooth' });
+            }
+        }, 5000);
+    }
+
+    slider.addEventListener('scroll', () => {
+        const slideWidth = slider.clientWidth;
+        const activeIndex = Math.round(slider.scrollLeft / slideWidth);
+
+        dots.forEach((dot, index) => {
+            if (index === activeIndex) {
+                dot.classList.add('w-6', 'bg-blue-900');
+                dot.classList.remove('w-1.5', 'bg-slate-300');
+            } else {
+                dot.classList.remove('w-6', 'bg-blue-900');
+                dot.classList.add('w-1.5', 'bg-slate-300');
+            }
+        });
+    });
+
+    slider.addEventListener('mouseenter', () => clearInterval(scrollInterval));
+    slider.addEventListener('mouseleave', startAutoScroll);
+
+    startAutoScroll();
+    </script>
+</body>
+</html>
