@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     {% load static %}
     <style>
-        body {
+        body { 
             font-family: 'Inter', sans-serif;
             background-attachment: fixed;
             background-size: cover;
@@ -32,7 +32,7 @@
                     <div class="w-12 h-12 bg-blue-900 rounded-xl flex items-center justify-center text-white font-black text-2xl shadow-lg">G</div>
                     <span class="hidden md:block font-extrabold text-slate-900 tracking-tight text-xl">GRAMMAIRE NORMATIVE</span>
                 </div>
-
+                
                 <div class="flex items-center gap-6">
                     <div class="text-right hidden sm:block">
                         <p class="text-sm font-bold text-slate-900 leading-none">Bonjour {{ user.first_name|default:user.username }}</p>
@@ -49,7 +49,7 @@
                             <span class="text-blue-900 font-black text-lg">{{ user.first_name|first|upper }}</span>
                         {% endif %}
                     </div>
-                    <form method="post" action="{% url 'account_logout' %}" class="ml-2">
+                    <form method="post" action="{% url 'deconnexion' %}" class="ml-2">
                         {% csrf_token %}
                         <button type="submit" class="text-sm font-bold text-red-600 hover:text-red-700 transition-colors flex items-center gap-1">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -64,11 +64,11 @@
     </nav>
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12">
-
+        
         <!-- Slider Section -->
         <section class="relative group px-4 md:px-0" id="slider-container">
             <div id="slider" class="flex overflow-x-auto snap-x snap-mandatory no-scrollbar gap-6 pb-4 scroll-smooth">
-
+                
                 <div class="min-w-full snap-center">
                     <div class="w-full bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-950 rounded-[2.5rem] p-6 md:p-10 text-white shadow-2xl overflow-hidden relative min-h-[350px] md:min-h-[420px] flex items-center">
                         <div class="absolute -top-24 -right-24 w-96 h-96 bg-white/10 rounded-full blur-[100px]"></div>
@@ -210,7 +210,7 @@
                     {% if offre.prix > 5000 %}
                     <div class="absolute top-0 right-0 bg-amber-400 text-blue-900 text-xs font-bold px-4 py-2 rounded-bl-2xl uppercase">Recommandé</div>
                     {% endif %}
-
+                    
                     <div class="mb-6">
                         <h4 class="text-2xl font-black text-slate-900 mb-2">{{ offre.nom }}</h4>
                         <div class="flex items-baseline gap-2">
@@ -279,7 +279,7 @@
                             <td class="px-6 py-4 text-sm font-bold text-slate-900">{{ paiement.offre.nom }}</td>
                             <td class="px-6 py-4 text-sm font-bold text-amber-600">{{ paiement.montant_paye }} XAF</td>
                             <td class="px-6 py-4">
-                                <span class="px-3 py-1 rounded-full text-xs font-bold
+                                <span class="px-3 py-1 rounded-full text-xs font-bold 
                                     {% if paiement.statut == 'SUCCESS' %}bg-green-100 text-green-700
                                     {% elif paiement.statut == 'PENDING' %}bg-yellow-100 text-yellow-700
                                     {% else %}bg-red-100 text-red-700{% endif %}">
@@ -317,7 +317,7 @@
         scrollInterval = setInterval(() => {
             const slideWidth = slider.clientWidth;
             const maxScroll = slider.scrollWidth - slideWidth;
-
+            
             if (slider.scrollLeft >= maxScroll - 10) {
                 slider.scrollTo({ left: 0, behavior: 'smooth' });
             } else {
@@ -329,7 +329,7 @@
     slider.addEventListener('scroll', () => {
         const slideWidth = slider.clientWidth;
         const activeIndex = Math.round(slider.scrollLeft / slideWidth);
-
+        
         dots.forEach((dot, index) => {
             if (index === activeIndex) {
                 dot.classList.add('w-6', 'bg-blue-900');

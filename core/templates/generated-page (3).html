@@ -1,0 +1,389 @@
+<html lang="fr"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grammaire Normative App Templates</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        /* Hide scrollbar for a cleaner look while keeping functionality */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-gray-100 text-slate-800 antialiased min-h-screen p-4 md:p-8 flex items-center justify-center">
+
+    <div class="flex flex-nowrap overflow-x-auto gap-6 pb-8 no-scrollbar w-full max-w-[1800px] snap-x snap-mandatory">
+
+        <!-- Screen 1: Splash / Onboarding 1 -->
+        <div class="w-[320px] h-[700px] flex-shrink-0 snap-center bg-gradient-to-br from-yellow-100 via-amber-300 to-amber-500 rounded-[2.5rem] shadow-2xl relative overflow-hidden flex flex-col items-center justify-between p-8 border-[6px] border-white/50 box-border">
+            <!-- Decorative Background Elements -->
+            <div class="absolute top-0 right-0 w-40 h-40 bg-white/20 rounded-full blur-2xl translate-x-10 -translate-y-10"></div>
+            <div class="absolute bottom-1/3 left-0 w-32 h-32 bg-white/30 rounded-full blur-xl -translate-x-10"></div>
+
+            <div class="w-full flex justify-end mt-4 z-10">
+                <span class="text-sm font-medium text-amber-800/60 bg-white/30 px-3 py-1 rounded-full">Fr</span>
+            </div>
+
+            <div class="flex-1 flex flex-col items-center justify-center z-10 w-full relative">
+                <!-- 3D Book Placeholder Graphic -->
+                <div class="w-48 h-56 relative perspective-[1000px] transform -rotate-12 mb-8 shadow-2xl">
+                    <div class="absolute inset-0 bg-blue-900 rounded-lg transform rotate-y-[-20deg] flex flex-col p-4 border border-blue-800">
+                        <div class="h-1 w-8 bg-blue-400 mb-2 rounded"></div>
+                        <h2 class="text-white text-base tracking-tight font-semibold leading-tight">GRAMMAIRE<br>NORMATIVE</h2>
+                        <div class="mt-auto flex gap-1">
+                            <div class="w-6 h-6 rounded-full bg-red-500 border-2 border-white"></div>
+                            <div class="w-6 h-6 rounded-full bg-yellow-400 border-2 border-white -ml-2"></div>
+                            <div class="w-6 h-6 rounded-full bg-green-500 border-2 border-white -ml-2"></div>
+                        </div>
+                    </div>
+                    <!-- Book pages effect -->
+                    <div class="absolute left-full top-2 bottom-2 w-4 bg-white transform -translate-x-1 skew-y-[-20deg] origin-left border-y border-r border-gray-200 shadow-inner"></div>
+                </div>
+            </div>
+
+            <div class="w-full text-center z-10 pb-4">
+                <h1 class="text-3xl tracking-tight font-semibold text-white mb-4 leading-tight shadow-sm drop-shadow-md">
+                    GRAMMAIRE<br>NORMATIVE
+                </h1>
+                <p class="text-base font-medium text-white/90 mb-8 max-w-[200px] mx-auto leading-snug">
+                    POUR TOUS USAGERS<br>
+                    <span class="text-sm opacity-80">MAITRISEZ LE FRANCAIS AVEC DES REGLES SIMPLES</span>
+                </p>
+                <button class="w-full bg-blue-900 hover:bg-blue-800 transition-colors text-white rounded-full py-4 text-lg font-semibold shadow-lg active:scale-[0.98]">
+                    COMMENCER
+                </button>
+            </div>
+        </div>
+
+        <!-- Screen 2: Auth Choice -->
+        <div class="w-[320px] h-[700px] flex-shrink-0 snap-center bg-gradient-to-br from-yellow-100 via-amber-300 to-amber-500 rounded-[2.5rem] shadow-2xl relative overflow-hidden flex flex-col items-center justify-between p-8 border-[6px] border-white/50 box-border">
+            <div class="absolute top-10 left-10 w-32 h-32 bg-white/20 rounded-full blur-2xl"></div>
+            
+            <div class="w-full mt-4 z-10 opacity-0"><span class="px-3 py-1">spacer</span></div> <!-- Spacer -->
+
+            <div class="flex-1 flex flex-col items-center justify-center z-10 w-full">
+                <!-- Open Book Placeholder -->
+                <div class="w-56 h-40 relative flex transform rotate-12 mb-12 shadow-xl">
+                    <!-- Left Page -->
+                    <div class="flex-1 bg-white rounded-l-lg border border-gray-200 transform skew-y-6 origin-right p-3 flex flex-col justify-between overflow-hidden relative shadow-[inset_-10px_0_20px_rgba(0,0,0,0.05)]">
+                        <div class="text-[6px] text-gray-300 leading-tight space-y-1">
+                            <div class="h-1 bg-gray-200 w-3/4"></div>
+                            <div class="h-1 bg-gray-200 w-full"></div>
+                            <div class="h-1 bg-gray-200 w-5/6"></div>
+                            <div class="h-1 bg-gray-200 w-full"></div>
+                            <div class="h-1 bg-gray-200 w-4/5"></div>
+                            <div class="h-1 bg-gray-200 w-full"></div>
+                        </div>
+                        <div class="absolute top-2 left-2 w-4 h-4 rounded-full bg-blue-900"></div>
+                    </div>
+                    <!-- Right Page -->
+                    <div class="flex-1 bg-white rounded-r-lg border border-gray-200 transform -skew-y-6 origin-left p-3 flex flex-col justify-start relative shadow-[inset_10px_0_20px_rgba(0,0,0,0.05)]">
+                        <div class="w-full h-12 bg-amber-400 rounded-md mb-2"></div>
+                        <div class="text-[6px] text-gray-300 leading-tight space-y-1">
+                            <div class="h-1 bg-gray-200 w-full"></div>
+                            <div class="h-1 bg-gray-200 w-5/6"></div>
+                        </div>
+                         <div class="absolute bottom-2 right-2 w-4 h-4 rounded-full bg-red-600"></div>
+                    </div>
+                    <!-- Center Bind -->
+                    <div class="absolute left-1/2 top-0 bottom-0 w-2 bg-gray-300 transform -translate-x-1/2 rounded-full z-10 shadow-inner"></div>
+                </div>
+            </div>
+
+            <div class="w-full flex flex-col gap-4 z-10 pb-8">
+                <button class="w-full bg-blue-900 hover:bg-blue-800 transition-colors text-white rounded-full py-4 text-base font-semibold shadow-lg active:scale-[0.98]">
+                    Inscription
+                </button>
+                <button class="w-full bg-red-600 hover:bg-red-500 transition-colors text-white rounded-full py-4 text-base font-semibold shadow-lg active:scale-[0.98]">
+                    Connexion
+                </button>
+            </div>
+        </div>
+
+        <!-- Screen 3: Home / Dashboard -->
+        <div class="w-[320px] h-[700px] flex-shrink-0 snap-center bg-white rounded-[2.5rem] shadow-xl relative overflow-hidden flex flex-col border border-gray-200">
+            <!-- Header -->
+            <div class="px-5 pt-10 pb-4 flex items-center gap-3 bg-white z-10">
+                <div class="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 border-2 border-white shadow-sm flex">
+                    <div class="w-1/3 h-full bg-green-500"></div>
+                    <div class="w-1/3 h-full bg-yellow-400"></div>
+                    <div class="w-1/3 h-full bg-red-500"></div>
+                </div>
+                <div>
+                    <h2 class="text-base font-semibold text-gray-900 leading-tight">Bonjour ESTIM</h2>
+                    <p class="text-sm text-gray-500">Votre abonnement est de 30 Jours</p>
+                </div>
+            </div>
+
+            <!-- Scrollable Content -->
+            <div class="flex-1 overflow-y-auto no-scrollbar px-5 pb-8 space-y-6">
+                
+                <!-- Main Promo Banner -->
+                <div class="w-full bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 rounded-2xl p-5 text-white shadow-md relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-xl translate-x-10 -translate-y-10"></div>
+                    <div class="relative z-10 pr-16">
+                        <h3 class="text-lg tracking-tight font-semibold leading-tight mb-4">GRAMMAIRE NORMATIVE<br><span class="text-sm font-medium opacity-90">POUR TOUS USAGERS</span></h3>
+                        <button class="bg-amber-400 text-blue-900 px-5 py-2 rounded-lg text-sm font-semibold shadow-sm hover:bg-amber-300 transition-colors">
+                            S'ABONNER
+                        </button>
+                    </div>
+                    <!-- Small Book decorative -->
+                    <div class="absolute right-2 bottom-2 w-16 h-20 bg-white/10 rounded transform rotate-12 border border-white/20 backdrop-blur-sm p-1 flex flex-col">
+                        <div class="h-6 w-full bg-amber-400/80 rounded-sm mb-1"></div>
+                        <div class="h-1 w-full bg-white/40 rounded-sm mb-1"></div>
+                        <div class="h-1 w-3/4 bg-white/40 rounded-sm"></div>
+                    </div>
+                </div>
+
+                <!-- Categories Section -->
+                <section>
+                    <div class="flex justify-between items-end mb-3">
+                        <h4 class="text-base font-semibold text-gray-900">Categories</h4>
+                        <a href="#" class="text-sm font-medium text-gray-500 hover:text-gray-800 transition-colors">voir plus</a>
+                    </div>
+                    <div class="space-y-3">
+                        <!-- Category Item 1 -->
+                        <button class="w-full bg-gradient-to-r from-blue-900 to-blue-800 rounded-2xl p-4 flex items-center shadow-sm relative overflow-hidden group">
+                            <div class="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-b from-cyan-400 to-blue-500 flex items-center justify-center">
+                                <span class="text-[10px] text-white font-semibold transform -rotate-90 origin-center whitespace-nowrap">La conjugaison</span>
+                            </div>
+                            <span class="ml-12 text-white text-base font-medium flex-1 text-center">Cours grammaire</span>
+                        </button>
+                        <!-- Category Item 2 -->
+                        <button class="w-full bg-gradient-to-r from-blue-900 to-blue-800 rounded-2xl p-4 flex items-center shadow-sm relative overflow-hidden group">
+                            <div class="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-b from-red-400 to-pink-500 flex items-center justify-center">
+                                <span class="text-[10px] text-white font-semibold transform -rotate-90 origin-center whitespace-nowrap">La grammaire</span>
+                            </div>
+                            <span class="ml-12 text-white text-base font-medium flex-1 text-center">Cours de Conjugaison</span>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Recommended Section -->
+                <section>
+                    <h4 class="text-base font-semibold text-gray-900 mb-3">Recommande</h4>
+                    <div class="space-y-4">
+                        <!-- List Item 1 -->
+                        <div class="flex gap-4 items-center cursor-pointer group">
+                            <div class="w-28 h-20 rounded-xl bg-purple-900 overflow-hidden relative flex-shrink-0 shadow-sm">
+                                <div class="absolute inset-0 flex items-center justify-center bg-black/20">
+                                     <span class="text-white text-xs font-semibold uppercase text-center leading-tight">Trois<br>Secrets</span>
+                                </div>
+                                <div class="absolute bottom-0 right-0 w-10 h-10 bg-white/20 rounded-tl-full backdrop-blur-md"></div>
+                            </div>
+                            <div class="flex-1">
+                                <h5 class="text-base font-medium text-gray-900 leading-tight mb-1 group-hover:text-blue-600 transition-colors line-clamp-2">Apprendre les articles de conjugaison en francais</h5>
+                                <p class="text-sm text-gray-500">10k vues</p>
+                            </div>
+                        </div>
+                        <!-- List Item 2 -->
+                        <div class="flex gap-4 items-center cursor-pointer group">
+                            <div class="w-28 h-20 rounded-xl bg-green-100 overflow-hidden relative flex-shrink-0 shadow-sm flex items-center justify-center p-2">
+                                <span class="text-green-800 text-xs font-semibold uppercase text-center leading-tight">Faciliter<br>la vie</span>
+                            </div>
+                            <div class="flex-1">
+                                <h5 class="text-base font-medium text-gray-900 leading-tight mb-1 group-hover:text-blue-600 transition-colors line-clamp-2">Apprendre les articles de conjugaison</h5>
+                                <p class="text-sm text-gray-500">10k vues</p>
+                            </div>
+                        </div>
+                         <!-- List Item 3 -->
+                         <div class="flex gap-4 items-center cursor-pointer group">
+                            <div class="w-28 h-20 rounded-xl bg-indigo-900 overflow-hidden relative flex-shrink-0 shadow-sm flex items-center justify-center">
+                                <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                                    <i data-lucide="play" class="w-4 h-4 text-white ml-0.5"></i>
+                                </div>
+                            </div>
+                            <div class="flex-1">
+                                <h5 class="text-base font-medium text-gray-900 leading-tight mb-1 group-hover:text-blue-600 transition-colors line-clamp-2">Apprendre les articles de conjugaison</h5>
+                                <p class="text-sm text-gray-500">10k vues</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- Screen 4: Profile & Settings -->
+        <div class="w-[320px] h-[700px] flex-shrink-0 snap-center bg-gray-50 rounded-[2.5rem] shadow-xl relative overflow-hidden flex flex-col border border-gray-200">
+            <!-- Header Nav -->
+            <div class="px-5 pt-10 pb-2 flex items-center justify-between z-10">
+                <button class="w-10 h-10 flex items-center justify-center text-gray-600 hover:bg-gray-200 rounded-full transition-colors">
+                    <i data-lucide="chevron-left" class="w-6 h-6"></i>
+                </button>
+                <h2 class="text-base font-semibold text-gray-900">Profil</h2>
+                <div class="w-10 h-10"></div> <!-- Placeholder for balance -->
+            </div>
+
+            <!-- Scrollable Content -->
+            <div class="flex-1 overflow-y-auto no-scrollbar px-5 pb-8 flex flex-col">
+                
+                <!-- User Profile Card -->
+                <div class="flex items-center gap-4 mb-6 mt-2">
+                    <div class="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 shadow-md border-2 border-white flex">
+                        <div class="w-1/3 h-full bg-green-500"></div>
+                        <div class="w-1/3 h-full bg-yellow-400"></div>
+                        <div class="w-1/3 h-full bg-red-500"></div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">ESTIM ecole</h3>
+                        <p class="text-sm text-gray-500">Votre abonnement est de 30 Jours</p>
+                    </div>
+                </div>
+
+                <!-- Banner -->
+                <div class="w-full bg-gradient-to-r from-blue-900 to-cyan-700 rounded-2xl p-5 text-white shadow-md mb-8 relative overflow-hidden">
+                    <h3 class="text-base tracking-tight font-semibold mb-3">GRAMMAIRE NORMATIVE</h3>
+                    <button class="bg-amber-400 text-blue-900 px-5 py-2 rounded-lg text-sm font-semibold shadow-sm hover:bg-amber-300 transition-colors relative z-10">
+                        VOIR MES COURS
+                    </button>
+                    <!-- Decorative blur -->
+                    <div class="absolute bottom-0 right-0 w-24 h-24 bg-cyan-400/30 rounded-full blur-xl translate-y-1/2 translate-x-1/4"></div>
+                </div>
+
+                <!-- Settings List -->
+                <div class="flex-1">
+                    <h4 class="text-sm font-semibold text-gray-400 mb-3 tracking-wider uppercase">General</h4>
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden divide-y divide-gray-50">
+                        
+                        <!-- Setting Item -->
+                        <button class="w-full flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors text-left group">
+                            <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-100 transition-colors">
+                                <i data-lucide="settings" class="w-5 h-5"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-base font-medium text-gray-900">Profile Settings</p>
+                                <p class="text-sm text-gray-500">Update and modify your profile</p>
+                            </div>
+                            <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400"></i>
+                        </button>
+
+                        <!-- Setting Item -->
+                        <button class="w-full flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors text-left group">
+                            <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-100 transition-colors">
+                                <i data-lucide="shield-check" class="w-5 h-5"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-base font-medium text-gray-900">Privacy</p>
+                                <p class="text-sm text-gray-500">Change your password</p>
+                            </div>
+                            <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400"></i>
+                        </button>
+
+                        <!-- Setting Item -->
+                        <button class="w-full flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors text-left group">
+                            <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-100 transition-colors">
+                                <i data-lucide="bell" class="w-5 h-5"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-base font-medium text-gray-900">Notifications</p>
+                                <p class="text-sm text-gray-500">Change your notification settings</p>
+                            </div>
+                            <i data-lucide="chevron-right" class="w-5 h-5 text-gray-400"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Logout Button -->
+                <div class="mt-8 pt-4">
+                    <button class="w-max mx-auto px-8 bg-red-600 hover:bg-red-700 transition-colors text-white rounded-full py-3 text-base font-medium shadow-sm flex items-center justify-center gap-2">
+                        Deconnexion
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Screen 5: Subscription & Payment -->
+        <div class="w-[320px] h-[700px] flex-shrink-0 snap-center bg-gray-50 rounded-[2.5rem] shadow-xl relative overflow-hidden flex flex-col border border-gray-200">
+            <!-- Header Nav -->
+            <div class="px-5 pt-10 pb-4 flex items-center justify-between bg-gray-50 z-10">
+                <button class="w-10 h-10 flex items-center justify-center text-gray-600 hover:bg-gray-200 rounded-full transition-colors">
+                    <i data-lucide="chevron-left" class="w-6 h-6"></i>
+                </button>
+                <h2 class="text-base font-semibold text-gray-900">Abonnement</h2>
+                <div class="w-10 h-10"></div>
+            </div>
+
+            <!-- Scrollable Content -->
+            <div class="flex-1 overflow-y-auto no-scrollbar px-5 pb-8 flex flex-col">
+                
+                <div class="space-y-4 mb-8">
+                    <!-- Option 1: Standard (Unchecked) -->
+                    <label class="block cursor-pointer group">
+                        <!-- visually hidden input -->
+                        <input type="radio" name="subscription" class="peer sr-only">
+                        <div class="bg-red-600 rounded-2xl p-4 flex items-start gap-4 text-white shadow-md transition-all peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-red-600 opacity-90 hover:opacity-100">
+                            <!-- Custom Unchecked Radio -->
+                            <div class="w-5 h-5 rounded-full border-2 border-white/70 flex-shrink-0 mt-1 flex items-center justify-center transition-colors">
+                                <div class="w-2.5 h-2.5 bg-white rounded-full opacity-0 scale-50 transition-all"></div>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-semibold mb-1">Standard<br>2 500 XAF</h3>
+                                <p class="text-sm text-white/80 leading-snug">Beneficiez des meilleurs cours pendant 1 mois</p>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- Option 2: Premium (Checked) -->
+                    <label class="block cursor-pointer group">
+                        <input type="radio" name="subscription" class="peer sr-only" checked="">
+                        <div class="bg-amber-400 rounded-2xl p-4 flex items-start gap-4 text-white shadow-md transition-all peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-amber-400">
+                            <!-- Custom Checked Radio -->
+                            <div class="w-5 h-5 rounded-full border-2 border-white flex-shrink-0 mt-1 flex items-center justify-center">
+                                <div class="w-2.5 h-2.5 bg-white rounded-full"></div>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-semibold mb-1">Premium<br>10 000 XAF</h3>
+                                <p class="text-sm text-white/90 leading-snug">Beneficiez des meilleurs cours pendant 6 mois</p>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Payment Method Section -->
+                <div class="mb-auto">
+                    <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
+                        <div class="flex justify-between items-center mb-4">
+                            <h4 class="text-base font-semibold text-gray-900">Methode de paiement</h4>
+                            <button class="text-sm font-medium text-gray-900 underline decoration-gray-300 underline-offset-4 hover:text-blue-600 transition-colors">Choisir</button>
+                        </div>
+                        <div class="flex gap-3">
+                            <!-- Airtel Money Placeholder -->
+                            <div class="w-12 h-10 bg-red-100 rounded-lg flex items-center justify-center border border-red-200">
+                                <div class="w-6 h-6 rounded-full bg-red-600 flex items-center justify-center text-[10px] text-white font-bold">A</div>
+                            </div>
+                            <!-- MTN Mobile Money Placeholder -->
+                            <div class="w-12 h-10 bg-yellow-100 rounded-lg flex items-center justify-center border border-yellow-200">
+                                <div class="w-6 h-6 rounded-full bg-yellow-400 flex items-center justify-center text-[10px] text-black font-bold">M</div>
+                            </div>
+                            <!-- Moov Money Placeholder -->
+                            <div class="w-12 h-10 bg-blue-100 rounded-lg flex items-center justify-center border border-blue-200">
+                                <div class="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-[10px] text-white font-bold">Mo</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Button -->
+                <div class="pt-6">
+                    <button class="w-full bg-blue-900 hover:bg-blue-800 transition-colors text-white rounded-full py-4 text-base font-semibold shadow-lg active:scale-[0.98]">
+                        Valider
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons({
+            attrs: {
+                'stroke-width': 1.5
+            }
+        });
+    </script>
+
+</body></html>
