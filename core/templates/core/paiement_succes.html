@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paiement réussi - Grammaire</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-amber-50 to-blue-900 min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 text-center">
+        <!-- Logo -->
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-amber-500 to-blue-900 rounded-full text-white text-3xl font-bold mb-6">
+            G
+        </div>
+
+        <!-- Icône de succès -->
+        <div class="mb-6">
+            <div class="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+            </div>
+        </div>
+
+        <!-- Titre -->
+        <h1 class="text-2xl font-bold text-blue-900 mb-2">Paiement réussi !</h1>
+        <p class="text-gray-600 mb-6">Votre transaction a été effectuée avec succès.</p>
+
+        <!-- Détails du paiement -->
+        <div class="bg-amber-50 rounded-lg p-6 mb-6">
+            <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Montant payé</span>
+                    <span class="font-bold text-amber-600">{{ paiement.montant_paye }} FCFA</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Offre</span>
+                    <span class="font-medium text-blue-900">{{ paiement.offre.nom }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Durée</span>
+                    <span class="font-medium text-blue-900">{{ paiement.offre.duree_jours }} jours</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Opérateur</span>
+                    <span class="font-medium text-blue-900">{{ paiement.get_provider_display }}</span>
+                </div>
+                {% if paiement.reference_operateur %}
+                <div class="border-t border-amber-200 pt-3 mt-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Référence</span>
+                        <span class="font-mono text-sm text-blue-900">{{ paiement.reference_operateur }}</span>
+                    </div>
+                </div>
+                {% endif %}
+                {% if paiement.date_confirmation %}
+                <div class="border-t border-amber-200 pt-3 mt-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Confirmé le</span>
+                        <span class="font-mono text-sm text-blue-900">{{ paiement.date_confirmation|date:"d/m/Y H:i" }}</span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Message de confirmation -->
+        <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+            <p class="text-sm text-green-700">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Un SMS de confirmation vous a été envoyé.
+            </p>
+        </div>
+
+        <!-- Boutons d'action -->
+        <div class="space-y-3">
+            <a
+                href="{% url 'dashboard' %}"
+                class="block w-full bg-gradient-to-r from-amber-500 to-amber-600 text-white font-semibold py-3 rounded-lg hover:from-amber-600 hover:to-amber-700 transition-all duration-200 shadow-lg"
+            >
+                Retour au dashboard
+            </a>
+        </div>
+    </div>
+</body>
+</html>
