@@ -1,6 +1,8 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
 from unfold.decorators import display
+from django import forms
+from django.utils.html import format_html
 
 from .models import (
     PaysAutorise,
@@ -9,10 +11,40 @@ from .models import (
     Abonnement,
     Paiement,
     Video,
+    Categorie,
     DocumentIA,
     Commentaire,
     Like,
 )
+
+
+class ColorPickerWidget(forms.TextInput):
+    """Widget personnalisé pour le sélecteur de couleur avec aperçu."""
+    input_type = 'color'
+
+    def render(self, name, value, attrs=None, renderer=None):
+        if value is None:
+            value = '#3B82F6'
+        final_attrs = self.build_attrs(self.attrs, attrs, type=self.input_type, name=name, value=value)
+        return format_html(
+            '<div class="flex items-center gap-3">'
+            '<input{} />'
+            '<span class="text-sm text-gray-500">Couleur actuelle: <strong>{}</strong></span>'
+            '</div>',
+            format_html(' '.join(f'{k}="{v}"' for k, v in final_attrs.items())),
+            value
+        )
+
+
+class CategorieForm(forms.ModelForm):
+    """Formulaire personnalisé pour les catégories avec color picker."""
+    class Meta:
+        model = Categorie
+        fields = '__all__'
+        widgets = {
+            'couleur': forms.TextInput(attrs={'type': 'color', 'class': 'w-20 h-10 rounded cursor-pointer'}),
+            'description': forms.Textarea(attrs={'rows': 3}),
+        }
 
 
 # ==========================================
@@ -41,14 +73,14 @@ class PaysAutoriseAdmin(ModelAdmin):
 # ==========================================
 @admin.register(OffreAbonnement)
 class OffreAbonnementAdmin(ModelAdmin):
-    list_display = ["nom", "prix", "duree_jours", "can_access_videos", "can_access_books", "can_use_ai_chat", "storage_limit_mb"]
-    list_filter = ["can_access_videos", "can_access_books", "can_use_ai_chat"]
+    list_display = ["nom", "prix", "duree_jours", "is_active", "can_access_videos", "can_access_books", "can_use_ai_chat", "storage_limit_mb"]
+    list_filter = ["is_active", "can_access_videos", "can_access_books", "can_use_ai_chat"]
     search_fields = ["nom"]
-    list_editable = ["prix", "duree_jours"]
-    
+    list_editable = ["prix", "duree_jours", "is_active"]
+
     fieldsets = [
         ("Informations générales", {
-            "fields": ["nom", "prix", "duree_jours"],
+            "fields": ["nom", "prix", "duree_jours", "is_active"],
         }),
         ("Fonctionnalités", {
             "fields": [
@@ -154,15 +186,15 @@ class PaiementAdmin(ModelAdmin):
 # ==========================================
 @admin.register(Video)
 class VideoAdmin(ModelAdmin):
-    list_display = ["titre", "is_free", "date_publication"]
-    list_filter = ["is_free", "date_publication"]
+    list_display = ["titre", "categorie", "is_free", "date_publication"]
+    list_filter = ["categorie", "is_free", "date_publication"]
     search_fields = ["titre", "description"]
     readonly_fields = ["date_publication"]
-    list_editable = ["is_free"]
-    
+    list_editable = ["is_free", "categorie"]
+
     fieldsets = [
         ("Informations", {
-            "fields": ["titre", "description", "is_free"],
+            "fields": ["titre", "description", "categorie", "is_free"],
         }),
         ("Fichiers", {
             "fields": ["fichier_video", "miniature"],
@@ -172,6 +204,70 @@ class VideoAdmin(ModelAdmin):
             "classes": ["collapse"],
         }),
     ]
+
+
+@admin.register(Categorie)
+class CategorieAdmin(ModelAdmin):
+    form = CategorieForm
+    list_display = ["nom", "icone", "video_count", "is_active", "ordre", "color_preview"]
+    list_filter = ["is_active"]
+    search_fields = ["nom", "description"]
+    list_editable = ["ordre", "is_active"]
+    readonly_fields = ["video_count_display", "created_at", "color_preview_display"]
+
+    fieldsets = [
+        ("Informations", {
+            "fields": ["nom", "description", "icone", "couleur"],
+            "description": "Sélectionnez une couleur avec le sélecteur ci-dessous"
+        }),
+        ("Affichage", {
+            "fields": ["ordre", "is_active"],
+        }),
+        ("Aperçu de la couleur", {
+            "fields": ["color_preview_display"],
+        }),
+        ("Métadonnées", {
+            "fields": ["video_count_display", "created_at"],
+            "classes": ["collapse"],
+        }),
+    ]
+
+    @display(description="Nb vidéos")
+    def video_count(self, obj):
+        return obj.video_count
+
+    @display(description="Nb vidéos")
+    def video_count_display(self, obj):
+        return obj.video_count
+
+    @display(description="Couleur")
+    def color_preview(self, obj):
+        if obj.couleur:
+            return format_html(
+                '<span style="display:inline-block;width:20px;height:20px;background-color:{};border:1px solid #ccc;border-radius:4px;"></span> {}',
+                obj.couleur,
+                obj.couleur
+            )
+        return "-"
+
+    @display(description="Aperçu de la couleur")
+    def color_preview_display(self, obj):
+        if obj.couleur:
+            return format_html(
+                '<div style="display:flex;align-items:center;gap:10px;">'
+                '<span style="display:inline-block;width:40px;height:40px;background-color:{};border:2px solid #ccc;border-radius:8px;"></span>'
+                '<span style="font-size:14px;font-family:monospace;">{}</span>'
+                '</div>',
+                obj.couleur,
+                obj.couleur
+            )
+        return "Aucune couleur définie"
+
+    class Media:
+        css = {
+            'all': ('admin/css/color-picker.css',)
+        }
+        js = ('admin/js/color-picker.js',)
 
 
 @admin.register(DocumentIA)

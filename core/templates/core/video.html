@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catalogue des vidéos | Grammaire Normative</title>
+    {% load static %}
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .bg-mesh {
+            background-color: #f8fafc;
+            background-image: radial-gradient(at 0% 0%, rgba(251, 191, 36, 0.1) 0, transparent 50%),
+                              radial-gradient(at 100% 100%, rgba(30, 58, 138, 0.05) 0, transparent 50%);
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        .video-card:hover .thumbnail-container img {
+            transform: scale(1.08);
+        }
+        .thumbnail-container img {
+            transition: transform 0.3s ease;
+        }
+        /* GIF thumbnail - lecture au survol */
+        .gif-thumbnail {
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        .video-card:hover .gif-thumbnail {
+            opacity: 1;
+        }
+        .video-card:hover .static-thumbnail {
+            opacity: 0;
+        }
+        .search-bar:focus-within {
+            box-shadow: 0 0 0 2px #1e3a8a;
+        }
+    </style>
+</head>
+<body class="bg-mesh text-slate-900 antialiased">
+
+    <!-- Navigation avec barre de recherche -->
+    <nav class="sticky top-0 z-50 glass-panel shadow-sm border-b border-white/20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center gap-3">
+                    <a href="{% url 'dashboard' %}" class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-blue-900 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg">G</div>
+                        <span class="font-bold text-lg tracking-tight text-blue-900 hidden sm:block">GRAMMAIRE NORMATIVE</span>
+                    </a>
+                </div>
+
+                <!-- Barre de recherche style moteur de recherche -->
+                <div class="flex-1 max-w-2xl mx-4">
+                    <div class="relative search-bar">
+                        <input type="text" id="searchInput" value="{{ query }}" placeholder="Rechercher une vidéo, une catégorie..." 
+                               class="w-full px-5 py-3 pl-12 bg-white/90 border border-slate-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-900/20 focus:border-blue-900 transition-all shadow-sm"
+                               autocomplete="off">
+                        <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        <button id="searchBtn" class="absolute right-2 top-1/2 -translate-y-1/2 px-5 py-2 bg-blue-900 text-white rounded-full text-sm font-semibold hover:bg-blue-800 transition-all">
+                            Rechercher
+                        </button>
+                        <button id="clearSearch" class="absolute right-20 top-1/2 -translate-y-1/2 w-7 h-7 bg-slate-200 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-300 transition-colors {% if not query %}hidden{% endif %}">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                            </svg>
+                        </button>
+                        
+                        <!-- Suggestions avec aperçu -->
+                        <div id="searchSuggestions" class="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-2xl max-h-[500px] overflow-y-auto hidden z-50">
+                            <div id="suggestionsContent" class="divide-y divide-slate-100"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex items-center gap-4">
+                    <a href="{% url 'dashboard' %}" class="text-sm font-semibold text-slate-600 hover:text-blue-900 transition-colors flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        </svg>
+                        <span class="hidden sm:inline">Retour</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Filtres -->
+    <div class="sticky top-16 z-40 glass-panel border-b border-white/20 py-3">
+        <div class="max-w-7xl mx-auto px-4 flex items-center gap-3 overflow-x-auto">
+            <button class="filter-btn active px-4 py-1.5 bg-blue-900 text-white rounded-full text-sm font-medium whitespace-nowrap" data-free="">
+                Tous
+            </button>
+            <button class="filter-btn px-4 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-full text-sm font-medium whitespace-nowrap hover:bg-slate-50 transition-colors" data-free="true">
+                🟢 Gratuit
+            </button>
+            <button class="filter-btn px-4 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-full text-sm font-medium whitespace-nowrap hover:bg-slate-50 transition-colors" data-free="false">
+                👑 Premium
+            </button>
+            <div class="flex-1"></div>
+            <!-- Filtres catégories -->
+            <div class="flex items-center gap-2">
+                <button class="filter-btn px-4 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-full text-sm font-medium whitespace-nowrap hover:bg-slate-50 transition-colors" 
+                        data-categorie="">
+                    Toutes
+                </button>
+                {% for cat in categories %}
+                <button class="filter-btn px-4 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-full text-sm font-medium whitespace-nowrap hover:bg-slate-50 transition-colors {% if selected_categorie == cat.id|stringformat:"s" %}active bg-blue-900 text-white{% endif %}" 
+                        data-categorie="{{ cat.id }}">
+                    {{ cat.nom }}
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenu principal -->
+    <main class="max-w-7xl mx-auto px-4 py-6">
+        <!-- En-tête -->
+        <div class="mb-6">
+            <h1 class="text-2xl font-bold text-slate-900 mb-2">
+                Catalogue des vidéos
+                {% if selected_category %}
+                    <span class="text-blue-900">- {{ selected_category.nom }}</span>
+                {% endif %}
+            </h1>
+            <p class="text-slate-600 text-sm">
+                <span id="videoCount">{{ videos.count }}</span> vidéo{{ videos.count|pluralize }} trouvée{{ videos.count|pluralize }}
+                {% if selected_category %}
+                    <span class="text-slate-400">dans la catégorie <strong>{{ selected_category.nom }}</strong></span>
+                {% endif %}
+            </p>
+        </div>
+
+        <!-- Grille de vidéos -->
+        <div id="videoGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {% for video in videos %}
+            <a href="{% url 'streaming' video.id %}" class="video-card group animate-fade-in" style="animation-delay: {{ forloop.counter0 }}50ms;">
+                <div class="thumbnail-container relative aspect-video rounded-xl overflow-hidden bg-slate-200 mb-3">
+                    <!-- Miniature statique -->
+                    {% if video.miniature %}
+                        {% if video.miniature.url|slice:"-4:" == ".gif" %}
+                            <!-- GIF : image statique + GIF au survol -->
+                            <img src="{{ video.miniature.url }}" alt="{{ video.titre }}" class="static-thumbnail w-full h-full object-cover">
+                            <img src="{{ video.miniature.url }}" alt="{{ video.titre }}" class="gif-thumbnail absolute inset-0 w-full h-full object-cover">
+                        {% else %}
+                            <!-- Image normale avec effet zoom -->
+                            <img src="{{ video.miniature.url }}" alt="{{ video.titre }}" class="w-full h-full object-cover">
+                        {% endif %}
+                    {% else %}
+                        <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-900 to-indigo-950">
+                            <svg class="w-16 h-16 text-white/20" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Badge Gratuit/Premium -->
+                    <div class="absolute bottom-2 right-2">
+                        {% if video.is_free %}
+                            <span class="px-2 py-1 bg-green-500 text-white text-xs font-bold rounded-full">Gratuit</span>
+                        {% else %}
+                            <span class="px-2 py-1 bg-amber-500 text-white text-xs font-bold rounded-full">Premium</span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Overlay au survol -->
+                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <div class="w-14 h-14 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/40">
+                            <svg class="w-7 h-7 text-white fill-current" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex gap-3">
+                    <!-- Icône catégorie -->
+                    {% if video.categorie %}
+                    <div class="w-9 h-9 rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold text-sm" 
+                         style="background-color: {{ video.categorie.couleur }};">
+                        {{ video.categorie.icone|default:video.categorie.nom|slice:":1"|upper }}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="flex-1 min-w-0">
+                        <h3 class="font-semibold text-slate-900 text-sm line-clamp-2 mb-1 group-hover:text-blue-900 transition-colors">{{ video.titre }}</h3>
+                        {% if video.categorie %}
+                        <p class="text-slate-500 text-xs">{{ video.categorie.nom }}</p>
+                        {% endif %}
+                        <p class="text-slate-400 text-xs mt-1">{{ video.date_publication|date:"d M Y" }}</p>
+                    </div>
+                </div>
+            </a>
+            {% empty %}
+            <div class="col-span-full text-center py-16">
+                <svg class="w-20 h-20 text-slate-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                </svg>
+                <h3 class="text-xl font-bold text-slate-900 mb-2">Aucune vidéo trouvée</h3>
+                <p class="text-slate-600 mb-6">Essayez de modifier vos critères de recherche</p>
+                <button onclick="resetAllFilters()" class="px-6 py-3 bg-blue-900 text-white rounded-full font-bold hover:bg-blue-800 transition-all">
+                    Réinitialiser les filtres
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass-panel mt-12 py-8 border-t border-white/20">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-slate-500 text-sm font-medium">© 2026 Grammaire Normative - Tous droits réservés.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Données des vidéos pour la recherche
+        const videosData = [
+            {% for video in videos %}
+            {
+                id: {{ video.id }},
+                titre: "{{ video.titre|escapejs }}",
+                description: "{{ video.description|escapejs|truncatechars:100 }}",
+                categorie: "{{ video.categorie.nom|escapejs|default:'' }}",
+                categorieId: {{ video.categorie_id|default:"null" }},
+                isFree: {{ video.is_free|yesno:"true,false" }},
+                url: "{% url 'streaming' video.id %}",
+                miniature: "{% if video.miniature %}{{ video.miniature.url }}{% endif %}",
+                datePub: "{{ video.date_publication|date:'d M Y' }}",
+                couleurCategorie: "{{ video.categorie.couleur|default:'#3B82F6' }}"
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+
+        const categoriesData = [
+            {% for cat in categories %}
+            { id: {{ cat.id }}, nom: "{{ cat.nom|escapejs }}", couleur: "{{ cat.couleur }}" }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+
+        // Éléments DOM
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const clearSearch = document.getElementById('clearSearch');
+        const searchSuggestions = document.getElementById('searchSuggestions');
+        const suggestionsContent = document.getElementById('suggestionsContent');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+
+        // Recherche avec suggestions
+        let debounceTimer;
+        searchInput.addEventListener('input', function(e) {
+            const query = e.target.value.trim();
+            clearSearch.classList.toggle('hidden', !query);
+            
+            clearTimeout(debounceTimer);
+            if (query.length >= 2) {
+                debounceTimer = setTimeout(() => showSuggestions(query), 150);
+            } else {
+                searchSuggestions.classList.add('hidden');
+            }
+        });
+
+        searchBtn.addEventListener('click', function() {
+            const query = searchInput.value.trim();
+            if (query) {
+                window.location.href = `{% url 'video' %}?q=${encodeURIComponent(query)}`;
+            }
+        });
+
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const query = searchInput.value.trim();
+                if (query) {
+                    window.location.href = `{% url 'video' %}?q=${encodeURIComponent(query)}`;
+                }
+            }
+        });
+
+        clearSearch.addEventListener('click', function() {
+            // Effacer la recherche mais garder les autres filtres
+            const params = new URLSearchParams(window.location.search);
+            params.delete('q');
+            window.location.href = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+        });
+
+        // Afficher les suggestions
+        function showSuggestions(query) {
+            const q = query.toLowerCase().trim();
+            if (q.length < 2) {
+                searchSuggestions.classList.add('hidden');
+                return;
+            }
+
+            const filteredVideos = videosData.filter(video => 
+                video.titre.toLowerCase().includes(q) ||
+                video.description.toLowerCase().includes(q) ||
+                (video.categorie && video.categorie.toLowerCase().includes(q))
+            ).slice(0, 8);
+
+            if (filteredVideos.length === 0) {
+                searchSuggestions.classList.add('hidden');
+                return;
+            }
+
+            suggestionsContent.innerHTML = filteredVideos.map(video => `
+                <a href="${video.url}" class="flex gap-3 px-4 py-3 hover:bg-slate-50 transition-colors group">
+                    <div class="w-32 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-slate-200 relative">
+                        ${video.miniature 
+                            ? `<img src="${video.miniature}" alt="${video.titre}" class="w-full h-full object-cover">`
+                            : `<div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-900 to-indigo-950">
+                                <svg class="w-8 h-8 text-white/40" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M8 5v14l11-7z"/>
+                                </svg>
+                            </div>`
+                        }
+                        <div class="absolute bottom-1 right-1">
+                            ${video.isFree 
+                                ? '<span class="text-[8px] px-1 py-0.5 bg-green-500 text-white rounded-full font-bold">Gratuit</span>'
+                                : '<span class="text-[8px] px-1 py-0.5 bg-amber-500 text-white rounded-full font-bold">Premium</span>'
+                            }
+                        </div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-semibold text-slate-900 text-sm line-clamp-2">${highlightMatch(video.titre, q)}</p>
+                        <p class="text-xs text-slate-500 mt-1">${video.categorie || 'Non catégorisé'}</p>
+                        <p class="text-xs text-slate-400 mt-2">${video.datePub}</p>
+                    </div>
+                </a>
+            `).join('');
+
+            searchSuggestions.classList.remove('hidden');
+        }
+
+        function highlightMatch(text, query) {
+            const regex = new RegExp(`(${query})`, 'gi');
+            return text.replace(regex, '<mark class="bg-amber-200 text-slate-900 px-0.5 rounded">$1</mark>');
+        }
+
+        // Filtrer les vidéos (côté serveur déjà fait, ceci est juste pour l'affichage)
+        function filterVideos() {
+            // Mise à jour de l'URL pour l'historique
+            const params = new URLSearchParams();
+            if (currentFilters.query) params.set('q', currentFilters.query);
+            if (currentFilters.categorie) params.set('categorie', currentFilters.categorie);
+            if (currentFilters.free) params.set('free', currentFilters.free);
+            const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
+            window.history.pushState({}, '', newUrl);
+
+            // Le filtrage est déjà fait par le serveur Django
+            // Cette fonction met juste à jour l'URL et l'affichage
+            updateVideoCount();
+        }
+
+        function updateVideoCount() {
+            const videoCards = document.querySelectorAll('.video-card');
+            videoCount.textContent = videoCards.length;
+        }
+
+        function updateVideoGrid(videos) {
+            videoCount.textContent = videos.length;
+
+            if (videos.length === 0) {
+                videoGrid.innerHTML = `
+                    <div class="col-span-full text-center py-16">
+                        <svg class="w-20 h-20 text-slate-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                        </svg>
+                        <h3 class="text-xl font-bold text-slate-900 mb-2">Aucune vidéo trouvée</h3>
+                        <p class="text-slate-600 mb-6">Essayez de modifier vos critères de recherche</p>
+                        <button onclick="resetAllFilters()" class="px-6 py-3 bg-blue-900 text-white rounded-full font-bold hover:bg-blue-800 transition-all">
+                            Réinitialiser les filtres
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            videoGrid.innerHTML = videos.map((video, index) => `
+                <a href="${video.url}" class="video-card group animate-fade-in" style="animation-delay: ${index * 50}ms;">
+                    <div class="thumbnail-container relative aspect-video rounded-xl overflow-hidden bg-slate-200 mb-3">
+                        ${video.miniature 
+                            ? `<img src="${video.miniature}" alt="${video.titre}" class="w-full h-full object-cover">`
+                            : `<div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-900 to-indigo-950">
+                                <svg class="w-16 h-16 text-white/20" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M8 5v14l11-7z"/>
+                                </svg>
+                            </div>`
+                        }
+                        <div class="absolute bottom-2 right-2">
+                            ${video.isFree 
+                                ? '<span class="px-2 py-1 bg-green-500 text-white text-xs font-bold rounded-full">Gratuit</span>'
+                                : '<span class="px-2 py-1 bg-amber-500 text-white text-xs font-bold rounded-full">Premium</span>'
+                            }
+                        </div>
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <div class="w-14 h-14 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/40">
+                                <svg class="w-7 h-7 text-white fill-current" viewBox="0 0 24 24">
+                                    <path d="M8 5v14l11-7z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex gap-3">
+                        ${video.categorie 
+                            ? `<div class="w-9 h-9 rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold text-sm" style="background-color: ${video.couleurCategorie}">
+                                ${video.categorie[0].toUpperCase()}
+                            </div>`
+                            : ''
+                        }
+                        <div class="flex-1 min-w-0">
+                            <h3 class="font-semibold text-slate-900 text-sm line-clamp-2 mb-1 group-hover:text-blue-900 transition-colors">${video.titre}</h3>
+                            ${video.categorie ? `<p class="text-slate-500 text-xs">${video.categorie}</p>` : ''}
+                            <p class="text-slate-400 text-xs mt-1">${video.datePub}</p>
+                        </div>
+                    </div>
+                </a>
+            `).join('');
+        }
+
+        function resetAllFilters() {
+            currentFilters = { query: '', categorie: '', free: '' };
+            searchInput.value = '';
+            clearSearch.classList.add('hidden');
+            filterBtns.forEach(btn => {
+                const isDefault = btn.dataset.free === '' && !btn.dataset.categorie;
+                if (isDefault) {
+                    btn.classList.add('active', 'bg-blue-900', 'text-white');
+                    btn.classList.remove('bg-white', 'border', 'border-slate-200', 'text-slate-700');
+                } else {
+                    btn.classList.remove('active', 'bg-blue-900', 'text-white');
+                    btn.classList.add('bg-white', 'border', 'border-slate-200', 'text-slate-700');
+                }
+            });
+            filterVideos();
+        }
+
+        // Gestion des filtres - Rechargement de page pour filtrage serveur
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Construire les nouveaux paramètres
+                const params = new URLSearchParams(window.location.search);
+                
+                if (this.dataset.categorie !== undefined) {
+                    // Filtre catégorie
+                    if (this.dataset.categorie) {
+                        params.set('categorie', this.dataset.categorie);
+                    } else {
+                        params.delete('categorie');
+                    }
+                }
+                
+                if (this.dataset.free !== undefined) {
+                    // Filtre gratuit/premium
+                    if (this.dataset.free) {
+                        params.set('free', this.dataset.free);
+                    } else {
+                        params.delete('free');
+                    }
+                }
+                
+                // Recharger la page avec les nouveaux filtres
+                window.location.href = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+            });
+        });
+
+        // Cacher les suggestions au clic en dehors
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !searchSuggestions.contains(e.target)) {
+                searchSuggestions.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

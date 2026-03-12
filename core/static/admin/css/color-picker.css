@@ -1,0 +1,76 @@
+/* Color Picker Styles for Categorie Admin */
+
+/* Color picker input styling */
+input[type="color"] {
+    -webkit-appearance: none;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+input[type="color"]:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+input[type="color"]:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+/* Color preview box */
+.color-preview-box {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    border: 2px solid #e5e7eb;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Color palette suggestions */
+.color-palette {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    margin-top: 10px;
+    padding: 15px;
+    background: #f9fafb;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+}
+
+.color-swatch {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.color-swatch:hover {
+    transform: scale(1.1);
+    border-color: #3b82f6;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.color-swatch.selected {
+    border-color: #1f2937;
+    box-shadow: 0 0 0 2px #fff, 0 0 0 4px #1f2937;
+}
+
+/* Field description styling */
+.field-couleur .help-text {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+/* Unfold admin specific overrides */
+[class*="FieldWrapper"] .color-preview-display {
+    padding: 10px 0;
+}

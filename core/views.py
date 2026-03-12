@@ -7,11 +7,12 @@ from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.utils import timezone
+from django.db import models
 import json
 import uuid
 import logging
 
-from .models import OffreAbonnement, Paiement, Profile, Abonnement, Video, Commentaire
+from .models import OffreAbonnement, Paiement, Profile, Abonnement, Video, Commentaire, Categorie, Like
 from .openpay_service import openpay_service, OpenPayError, OPENPAY_API_KEY
 
 logger = logging.getLogger(__name__)
@@ -26,7 +27,9 @@ def home(request):
 
 def index(request):
     """Page d'accueil publique."""
-    return render(request, "core/index.html")
+    from .models import OffreAbonnement
+    offres = OffreAbonnement.objects.filter(is_active=True).order_by('prix')
+    return render(request, "core/index.html", {"offres": offres})
 
 
 def connexion(request):
@@ -34,17 +37,21 @@ def connexion(request):
     if request.user.is_authenticated:
         return redirect("dashboard")
 
+    # Récupérer l'URL de redirection après connexion
+    next_url = request.GET.get('next', 'dashboard')
+
     if request.method == "POST":
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
             login(request, user)
             messages.success(request, "Connexion réussie ! Bienvenue.")
-            return redirect("dashboard")
+            # Rediriger vers la page demandée ou le dashboard
+            return redirect(next_url)
     else:
         form = AuthenticationForm()
 
-    return render(request, "core/connexion.html", {"form": form})
+    return render(request, "core/connexion.html", {"form": form, "next": next_url})
 
 
 @login_required
@@ -56,13 +63,98 @@ def deconnexion(request):
 
 
 @login_required
+def video(request):
+    """Page de catalogue des vidéos avec recherche et filtres."""
+    query = request.GET.get('q', '')
+    categorie_id = request.GET.get('categorie', '')
+
+    videos = Video.objects.filter(is_active=True)
+    categories = Categorie.objects.filter(is_active=True)
+    selected_category = None
+
+    # Filtrer par recherche
+    if query:
+        videos = videos.filter(
+            models.Q(titre__icontains=query) |
+            models.Q(description__icontains=query)
+        )
+
+    # Filtrer par catégorie
+    if categorie_id:
+        try:
+            selected_category = Categorie.objects.get(id=int(categorie_id), is_active=True)
+            videos = videos.filter(categorie=selected_category)
+        except (ValueError, TypeError, Categorie.DoesNotExist):
+            pass
+
+    # Filtrer par gratuit/premium
+    free_filter = request.GET.get('free', '')
+    if free_filter == 'true':
+        videos = videos.filter(is_free=True)
+    elif free_filter == 'false':
+        videos = videos.filter(is_free=False)
+
+    context = {
+        'videos': videos,
+        'categories': categories,
+        'selected_category': selected_category,
+        'query': query,
+        'selected_categorie': categorie_id,
+        'free_filter': free_filter,
+    }
+    return render(request, 'core/video.html', context)
+
+
+@login_required
+def api_search_videos(request):
+    """API endpoint pour la recherche de vidéos avec suggestions."""
+    query = request.GET.get('q', '')
+    limit = int(request.GET.get('limit', 10))
+    
+    videos = Video.objects.filter(is_active=True)
+    
+    if query:
+        videos = videos.filter(
+            models.Q(titre__icontains=query) |
+            models.Q(description__icontains=query) |
+            models.Q(categorie__nom__icontains=query)
+        )[:limit]
+    
+    results = []
+    for video in videos:
+        results.append({
+            'id': video.id,
+            'titre': video.titre,
+            'description': video.description[:100] if video.description else '',
+            'categorie': video.categorie.nom if video.categorie else None,
+            'categorie_id': video.categorie_id,
+            'is_free': video.is_free,
+            'url': f'/video/{video.id}/',
+            'miniature': video.miniature.url if video.miniature else None,
+            'date_pub': video.date_publication.strftime('%d %b %Y')
+        })
+    
+    return JsonResponse({'videos': results})
+
+
+@login_required
 def dashboard(request):
     """Tableau de bord utilisateur connecté."""
-    from .models import OffreAbonnement, Paiement
+    from .models import OffreAbonnement, Paiement, Categorie, Video
     offres = OffreAbonnement.objects.all()
     # Récupérer les 5 derniers paiements de l'utilisateur
     paiements = Paiement.objects.filter(user=request.user).order_by('-date_creation')[:5]
-    return render(request, "core/dashboard.html", {"user": request.user, "offres": offres, "paiements": paiements})
+    # Récupérer les catégories actives
+    categories = Categorie.objects.filter(is_active=True)
+    # Récupérer 6 vidéos recommandées (gratuites et payantes)
+    videos_recommandees = Video.objects.filter(is_active=True).order_by('-date_publication')[:6]
+    return render(request, "core/dashboard.html", {
+        "user": request.user,
+        "offres": offres,
+        "paiements": paiements,
+        "categories": categories,
+        "videos_recommandees": videos_recommandees,
+    })
 
 
 @login_required
@@ -82,36 +174,36 @@ def initier_paiement(request, offre_id):
     if not OPENPAY_API_KEY:
         messages.error(request, "Configuration manquante : La clé API OpenPay n'est pas configurée. Contactez l'administrateur.")
         return redirect('dashboard')
-    
+
     offre = get_object_or_404(OffreAbonnement, id=offre_id)
     profile = request.user.profile
 
+    # Contexte par défaut pour le formulaire
+    context = {
+        "offre": offre,
+        "profile": profile,
+    }
+
     if request.method == "POST":
+        # Récupérer le numéro depuis le POST ou utiliser celui du profil
         telephone = request.POST.get('telephone', '').replace(' ', '').replace('-', '')
         provider = request.POST.get('provider', 'MTN')
+
+        # Si aucun numéro fourni, utiliser un placeholder (l'utilisateur le saisira sur OpenPay)
+        if not telephone:
+            telephone = profile.telephone if profile.telephone else '242000000000'
 
         # Nettoyer le numéro (format international sans +)
         if telephone.startswith('+'):
             telephone = telephone[1:]
-        
+
         # Si le numéro commence par 0, ajouter l'indicatif Congo (242)
         if telephone.startswith('0'):
             telephone = '242' + telephone[1:]
-        
+
         # Si le numéro est trop court (sans indicatif), ajouter 242
         if len(telephone) < 9:
             telephone = '242' + telephone
-
-        # Validation : le numéro doit avoir entre 9 et 15 chiffres (standard international)
-        if not telephone.isdigit() or len(telephone) < 9 or len(telephone) > 15:
-            messages.error(request, f"Numéro de téléphone invalide. Format attendu: 242066203420")
-            # Rester sur la page de paiement avec les données saisies
-            return render(request, "core/paiement.html", {
-                "offre": offre, 
-                "profile": profile,
-                "telephone": request.POST.get('telephone', ''),
-                "provider": provider
-            })
 
         # Générer un ID de transaction unique
         transaction_id = f"TXN_{uuid.uuid4().hex[:12].upper()}"
@@ -134,10 +226,12 @@ def initier_paiement(request, offre_id):
         )
 
         # Informations client
+        # S'assurer que l'email n'est jamais vide (requis par OpenPay)
+        user_email = request.user.email or f"user_{request.user.id}@estim-gram.com"
         customer = {
             "name": f"{request.user.first_name} {request.user.last_name}".strip() or request.user.username,
             "phone": telephone,
-            "email": request.user.email
+            "email": user_email
         }
 
         # Métadonnées pour le suivi
@@ -175,35 +269,20 @@ def initier_paiement(request, offre_id):
             else:
                 paiement.marquer_comme_echec()
                 messages.error(request, f"Échec de l'initiation du paiement: {result.get('error')}")
-                return render(request, "core/paiement.html", {
-                    "offre": offre, 
-                    "profile": profile,
-                    "telephone": telephone,
-                    "provider": provider
-                })
+                return render(request, "core/paiement.html", context)
 
         except OpenPayError as e:
             logger.error(f"Erreur OpenPay: {e.message} (status: {e.status_code})")
             paiement.marquer_comme_echec({'error': e.message})
             messages.error(request, f"Erreur de paiement: {e.message}")
-            return render(request, "core/paiement.html", {
-                "offre": offre, 
-                "profile": profile,
-                "telephone": telephone,
-                "provider": provider
-            })
+            return render(request, "core/paiement.html", context)
         except Exception as e:
             logger.error(f"Erreur inattendue: {str(e)}")
             paiement.marquer_comme_echec({'error': str(e)})
             messages.error(request, "Erreur technique lors du paiement")
-            return render(request, "core/paiement.html", {
-                "offre": offre, 
-                "profile": profile,
-                "telephone": telephone,
-                "provider": provider
-            })
+            return render(request, "core/paiement.html", context)
 
-    return render(request, "core/paiement.html", {"offre": offre, "profile": profile})
+    return render(request, "core/paiement.html", context)
 
 
 @login_required
@@ -237,17 +316,82 @@ def video(request):
 
 def streaming(request, id):
     """Page de streaming d'une vidéo avec commentaires."""
-    videos = get_object_or_404(Video, id=id)
+    video = get_object_or_404(Video, id=id)
 
+    # Vérifier si la vidéo est gratuite ou si l'utilisateur a un abonnement
+    is_accessible = video.is_free
+    user_has_subscription = False
+    user_has_liked = False
+    
+    if request.user.is_authenticated:
+        try:
+            profile = request.user.profile
+            abonnement = profile.get_active_subscription()
+            user_has_subscription = bool(abonnement)
+            # Si l'utilisateur a un abonnement, toutes les vidéos sont accessibles
+            is_accessible = True
+            # Vérifier si l'utilisateur a déjà liké cette vidéo
+            from .models import Like
+            user_has_liked = Like.objects.filter(user=request.user, video=video).exists()
+        except Exception:
+            pass
+
+    # Si la vidéo n'est pas accessible, rediriger ou afficher un message
+    if not is_accessible:
+        messages.warning(request, "Cette vidéo est réservée aux abonnés. Veuillez souscrire à un abonnement pour y accéder.")
+        return redirect("dashboard")
+
+    # Gestion des commentaires (POST)
     if request.method == "POST" and request.user.is_authenticated:
         contenu = request.POST.get("contenu")
         if contenu:
-            Commentaire.objects.create(user=request.user, video=videos, contenu=contenu)
-        return redirect("streaming", id=id)
+            commentaire = Commentaire.objects.create(user=request.user, video=video, contenu=contenu)
+            # Retourner une réponse JSON pour AJAX
+            return JsonResponse({
+                "success": True,
+                "message": "Commentaire ajouté",
+                "commentaire": {
+                    "id": commentaire.id,
+                    "contenu": commentaire.contenu,
+                    "user": commentaire.user.username,
+                    "user_initial": (commentaire.user.first_name or commentaire.user.username)[0].upper(),
+                    "created_at": commentaire.created_at.strftime("%d/%m/%Y à %H:%M")
+                }
+            })
+        return JsonResponse({"success": False, "message": "Contenu vide"}, status=400)
 
-    commentaires = Commentaire.objects.filter(video=videos)
-    context = {"videos": videos, "commentaires": commentaires}
+    commentaires = Commentaire.objects.filter(video=video).order_by('-created_at')
+    context = {
+        "video": video,
+        "commentaires": commentaires,
+        "user_has_subscription": user_has_subscription,
+        "user_has_liked": user_has_liked,
+    }
     return render(request, "streaming/streaming.html", context)
+
+
+@login_required
+def like_video(request, id):
+    """Gère les likes sur les vidéos via AJAX."""
+    from .models import Video, Like
+    
+    if request.method == "POST":
+        video = get_object_or_404(Video, id=id)
+        data = json.loads(request.body)
+        liked = data.get("liked", False)
+        
+        if liked:
+            # Ajouter le like (gère les doublons grâce au UniqueConstraint)
+            Like.objects.get_or_create(user=request.user, video=video)
+        else:
+            # Supprimer le like
+            Like.objects.filter(user=request.user, video=video).delete()
+        
+        # Retourner le nouveau nombre de likes
+        like_count = video.likes.count()
+        return JsonResponse({"success": True, "like_count": like_count})
+    
+    return JsonResponse({"success": False, "error": "Méthode non autorisée"}, status=405)
 
 
 @csrf_exempt
