@@ -13,11 +13,16 @@ import json
 import logging
 import os
 from decouple import config
+from dotenv import load_dotenv
+from pathlib import Path
 from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
 
-# Configuration OpenPay
+# Configuration OpenPay - Cherche le fichier .env à la racine du projet
+BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / '.env')
+
 OPENPAY_API_URL = config("OPENPAY_API_URL", default="https://api.openpay-cg.com/v1")
 OPENPAY_API_KEY = config("OPENPAY_API_KEY", default="")
 OPENPAY_SECRET_KEY = config("OPENPAY_SECRET_KEY", default="")

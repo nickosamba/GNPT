@@ -8,6 +8,8 @@ urlpatterns = [
     path("dashboard/", views.dashboard, name="dashboard"),
     path("video/", views.video, name='video'),
     path("video/<int:id>/", views.streaming, name="streaming"),
+    path("video/<int:id>/like/", views.like_video, name="like_video"),
+    path("api/search/", views.api_search_videos, name="api_search_videos"),
 
     # Paiement OpenPay
     path("paiement/<int:offre_id>/", views.initier_paiement, name="initier_paiement"),

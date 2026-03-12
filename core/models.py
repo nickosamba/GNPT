@@ -36,6 +36,7 @@ class OffreAbonnement(models.Model):
     nom = models.CharField(max_length=100, help_text="Ex: Pack Étudiant, Pack Pro IA")
     prix = models.PositiveIntegerField(help_text="Montant en devise locale (ex: FCFA)")
     duree_jours = models.IntegerField(default=30)
+    is_active = models.BooleanField(default=True, help_text="Décocher pour masquer l'offre")
 
     # Flags de fonctionnalités (Active/Désactive des modules de l'app)
     can_access_videos = models.BooleanField(default=True)
@@ -46,6 +47,7 @@ class OffreAbonnement(models.Model):
     class Meta:
         verbose_name = "Offre d'Abonnement"
         verbose_name_plural = "Offres d'Abonnement"
+        ordering = ['prix']
 
     def __str__(self):
         return f"{self.nom} - {self.prix}"
@@ -266,6 +268,11 @@ class Video(models.Model):
 
     def __str__(self):
         return self.titre
+
+    @property
+    def likes_count(self):
+        """Retourne le nombre de likes de cette vidéo."""
+        return self.likes.count()
 
 
 class DocumentIA(models.Model):

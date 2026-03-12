@@ -1,221 +1,1064 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ video.titre }} | StreamFlex</title>
+    <title>{{ video.titre }} | Grammaire Normative</title>
+    {% load static %}
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <style>
-        :root {
-            --bg-color: #0f0f0f;
-            --surface-color: #1a1a1a;
-            --accent-color: #10b981;
-            --text-main: #ffffff;
-            --text-dim: #aaaaaa;
-            --border-color: #333333;
+        body { font-family: 'Inter', sans-serif; }
+        .bg-mesh {
+            background-color: #f8fafc;
+            background-image: radial-gradient(at 0% 0%, rgba(251, 191, 36, 0.1) 0, transparent 50%),
+                              radial-gradient(at 100% 100%, rgba(30, 58, 138, 0.05) 0, transparent 50%);
         }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            font-family: "Roboto", Arial, sans-serif;
-            margin: 0;
-            padding: 0;
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
         }
-
-        /* --- LAYOUT PRINCIPAL --- */
-        .main-layout {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        .back-nav {
-            margin-bottom: 15px;
-        }
-
-        .back-nav a {
-            color: var(--text-dim);
-            text-decoration: none;
-            font-size: 0.9rem;
-        }
-
-        /* --- LECTEUR VIDÉO (Ajustement) --- */
-        .video-container {
-            width: 100%;
-            background: #000;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+        /* Custom YouTube-style Video Player */
+        .video-player {
+            position: relative;
             aspect-ratio: 16 / 9;
+            background: #000;
+            border-radius: 1rem;
+            overflow: hidden;
+            group: video-player;
         }
-
-        video {
+        .video-player video {
             width: 100%;
             height: 100%;
-            outline: none;
+            object-fit: contain;
         }
-
-        /* --- INFOS VIDÉO & ACTIONS --- */
-        .video-header {
-            margin-top: 20px;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 15px;
+        /* Controls overlay */
+        .video-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 50%, transparent 100%);
+            padding: 40px 12px 12px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
-
-        h1 { font-size: 1.5rem; margin: 0 0 10px 0; }
-
-        .action-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .video-player:hover .video-controls,
+        .video-player.paused .video-controls {
+            opacity: 1;
         }
-
-        .video-stats { color: var(--text-dim); font-size: 0.9rem; }
-
-        .interactions { display: flex; gap: 15px; }
-
-        .btn-action {
-            background: var(--surface-color);
-            border: 1px solid var(--border-color);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
+        /* Progress bar */
+        .progress-bar-container {
+            position: relative;
+            width: 100%;
+            height: 7px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 999px;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: 0.2s;
+            margin-bottom: 12px;
+            transition: height 0.2s ease;
         }
-
-        .btn-action:hover { background: #333; }
-
-        /* --- ZONE DESCRIPTION --- */
-        .description-box {
-            background: var(--surface-color);
-            padding: 15px;
-            border-radius: 12px;
-            margin: 20px 0;
-            font-size: 0.95rem;
-            line-height: 1.5;
+        .progress-bar-container:hover {
+            height: 10px;
         }
-
-        /* --- SECTION COMMENTAIRES --- */
-        .comments-section {
-            margin-top: 40px;
+        .progress-bar {
+            height: 100%;
+            background: #1e3a8a;
+            border-radius: 999px;
+            position: relative;
+            width: 0%;
         }
-
-        .comment-count { font-size: 1.2rem; margin-bottom: 20px; }
-
-        .comment-form {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 30px;
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            right: -6px;
+            top: 50%;
+            transform: translateY(-50%) scale(0);
+            width: 12px;
+            height: 12px;
+            background: #1e3a8a;
+            border-radius: 50%;
+            transition: transform 0.2s ease;
         }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            background: var(--accent-color);
+        .progress-bar-container:hover .progress-bar::after {
+            transform: translateY(-50%) scale(1);
+        }
+        /* Control buttons */
+        .control-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 8px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
+            transition: background 0.2s ease;
         }
-
-        .comment-input-box { flex: 1; }
-
-        input[type="text"] {
-            width: 100%;
-            background: transparent;
-            border: none;
-            border-bottom: 1px solid var(--border-color);
-            color: white;
-            padding: 8px 0;
-            font-size: 0.95rem;
-            outline: none;
+        .control-btn:hover {
+            background: rgba(255,255,255,0.2);
         }
-
-        input[type="text"]:focus { border-bottom: 2px solid var(--accent-color); }
-
-        .comment-list { list-style: none; padding: 0; }
-
-        .comment-item {
+        .control-btn svg {
+            width: 24px;
+            height: 24px;
+        }
+        /* Play button overlay */
+        .play-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            opacity: 0;
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+        .video-player:hover .play-overlay {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+        .play-overlay-btn {
+            width: 68px;
+            height: 68px;
+            background: rgba(0,0,0,0.8);
+            border-radius: 50%;
             display: flex;
-            gap: 15px;
-            margin-bottom: 25px;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
         }
-
-        .comment-text { font-size: 0.9rem; }
-        .comment-author { font-weight: bold; margin-bottom: 4px; display: block; font-size: 0.85rem; }
-
+        .play-overlay-btn svg {
+            width: 28px;
+            height: 28px;
+            fill: white;
+            margin-left: 4px;
+        }
+        /* Time display */
+        .time-display {
+            color: white;
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        /* Volume slider */
+        .volume-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .volume-slider {
+            width: 0;
+            height: 4px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 999px;
+            overflow: hidden;
+            transition: width 0.2s ease;
+        }
+        .volume-container:hover .volume-slider {
+            width: 80px;
+        }
+        .volume-level {
+            height: 100%;
+            background: white;
+            width: 100%;
+        }
+        /* Settings menu */
+        .settings-menu {
+            position: absolute;
+            bottom: 60px;
+            right: 12px;
+            background: rgba(0,0,0,0.9);
+            border-radius: 12px;
+            padding: 8px 0;
+            min-width: 180px;
+            display: none;
+        }
+        .settings-menu.active {
+            display: block;
+        }
+        .settings-option {
+            padding: 10px 16px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .settings-option:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        /* Big play button center */
+        .big-play-btn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            background: rgba(30, 58, 138, 0.9);
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+        .big-play-btn:hover {
+            transform: translate(-50%, -50%) scale(1.1);
+            background: rgba(30, 58, 138, 1);
+        }
+        .big-play-btn svg {
+            width: 32px;
+            height: 32px;
+            fill: white;
+            margin-left: 4px;
+        }
+        .video-player.paused .big-play-btn {
+            display: flex;
+        }
+        /* Buffer indicator */
+        .buffer-bar {
+            position: absolute;
+            height: 100%;
+            background: rgba(255,255,255,0.4);
+            border-radius: 999px;
+            width: 0%;
+        }
+        /* Theater mode */
+        .theater-mode {
+            border-radius: 0 !important;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        .like-btn.liked {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+        }
+        .comment-enter {
+            animation: fadeIn 0.3s ease-out;
+        }
     </style>
 </head>
-<body>
+<body class="bg-mesh text-slate-900 antialiased">
 
-    <div class="main-layout">
-        <div class="back-nav">
-            <a href="{% url 'video' %}">← Retour au catalogue</a>
-        </div>
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 glass-panel shadow-sm border-b border-white/20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-3">
+                    <a href="{% url 'dashboard' %}" class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-blue-900 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg">G</div>
+                        <span class="font-bold text-lg tracking-tight text-blue-900 hidden sm:block">GRAMMAIRE NORMATIVE</span>
+                    </a>
+                </div>
 
-        <div class="video-container">
-            <video id="mainVideo" controls autoplay poster="{{ video.miniature.url }}">
-                <source src="{{ videos.fichier_video.url }}" type="video/mp4">
-            </video>
-        </div>
+                <!-- Barre de recherche -->
+                <div class="flex-1 max-w-xl mx-4 hidden md:block">
+                    <div class="relative">
+                        <input type="text" id="searchInput" placeholder="Rechercher une vidéo..." 
+                               class="w-full px-4 py-2.5 pl-11 bg-white/80 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-900/20 focus:border-blue-900 transition-all"
+                               autocomplete="off">
+                        <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        
+                        <!-- Suggestions -->
+                        <div id="searchSuggestions" class="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-2xl max-h-[400px] overflow-y-auto hidden z-50">
+                            <div id="suggestionsContent" class="divide-y divide-slate-100"></div>
+                        </div>
+                    </div>
+                </div>
 
-        <div class="video-header">
-            <h1>{{ videos.titre }}</h1>
-            <div class="action-bar">
-                <div class="video-stats">Publié le {{ videos.date_publication|date:"d M Y" }}</div>
-                <div class="interactions">
-                    <button class="btn-action" onclick="handleLike()">👍 <span id="likeCount">12</span></button>
-                    <button class="btn-action">💾 Enregistrer</button>
-                    <button class="btn-action">🔗 Partager</button>
+                <div class="flex items-center gap-4">
+                    {% if user_subscription and user_subscription.is_premium %}
+                        <span class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-100 text-green-700 text-xs font-bold rounded-full">
+                            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            Abonné
+                        </span>
+                    {% endif %}
+                    <a href="{% url 'dashboard' %}" class="text-sm font-semibold text-slate-600 hover:text-blue-900 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        </svg>
+                    </a>
                 </div>
             </div>
         </div>
+    </nav>
 
-        <div class="description-box">
-            {{ videos.description|linebreaks }}
-        </div>
+    <!-- Contenu principal -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Fil d'ariane -->
+        <nav class="flex items-center gap-2 text-sm text-slate-500 mb-6 animate-fade-in">
+            <a href="{% url 'dashboard' %}" class="hover:text-blue-900 transition-colors">Dashboard</a>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+            {% if video.categorie %}
+                <a href="{% url 'dashboard' %}" class="hover:text-blue-900 transition-colors">{{ video.categorie.nom }}</a>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            {% endif %}
+            <span class="text-slate-900 font-medium truncate">{{ video.titre }}</span>
+        </nav>
 
-        <section class="comments-section">
-            <div class="comment-count">3 Commentaires</div>
-            
-            <form method="post">
-                {% csrf_token %}
-                <div class="comment-form">
-                    <div class="user-avatar">M</div>
-                    <div class="comment-input-box" >
-                        <input type="text" placeholder="Ajouter un commentaire..." name="contenu">
+        <div class="grid lg:grid-cols-3 gap-8">
+            <!-- Section Vidéo (2/3) -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Lecteur vidéo personnalisé style YouTube -->
+                <div class="video-player animate-fade-in" id="videoPlayer">
+                    <video id="mainVideo" poster="{% if video.miniature %}{{ video.miniature.url }}{% endif %}">
+                        <source src="{{ video.fichier_video.url }}" type="video/mp4">
+                        Votre navigateur ne supporte pas la lecture vidéo.
+                    </video>
+                    
+                    <!-- Bouton play central -->
+                    <div class="big-play-btn" onclick="togglePlay()">
+                        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                     </div>
-                    <button type="submit" class="btn-action" style="border-radius: 20px; padding: 8px 20px;">
-                        Envoyer
-                    </button>
+                    
+                    <!-- Overlay play button au survol -->
+                    <div class="play-overlay">
+                        <div class="play-overlay-btn">
+                            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                        </div>
+                    </div>
+                    
+                    <!-- Contrôles -->
+                    <div class="video-controls">
+                        <!-- Barre de progression -->
+                        <div class="progress-bar-container" id="progressBar" onclick="seekVideo(event)">
+                            <div class="buffer-bar" id="bufferBar"></div>
+                            <div class="progress-bar" id="progressBarFill"></div>
+                        </div>
+                        
+                        <!-- Contrôles principaux -->
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <!-- Play/Pause -->
+                                <button class="control-btn" onclick="togglePlay()" id="playPauseBtn" title="Lecture (k)">
+                                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                                </button>
+                                
+                                <!-- Stop -->
+                                <button class="control-btn" onclick="stopVideo()" title="Arrêter">
+                                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h12v12H6z"/></svg>
+                                </button>
+                                
+                                <!-- Volume -->
+                                <div class="volume-container">
+                                    <button class="control-btn" onclick="toggleMute()" id="volumeBtn" title="Son (m)">
+                                        <svg viewBox="0 0 24 24" fill="currentColor" id="volumeIcon">
+                                            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                                        </svg>
+                                    </button>
+                                    <div class="volume-slider">
+                                        <div class="volume-level" id="volumeLevel"></div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Temps -->
+                                <div class="time-display">
+                                    <span id="currentTime">0:00</span> / <span id="duration">0:00</span>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center gap-2">
+                                <!-- Paramètres -->
+                                <button class="control-btn" onclick="toggleSettings()" title="Paramètres">
+                                    <svg viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+                                    </svg>
+                                </button>
+                                
+                                <!-- Plein écran -->
+                                <button class="control-btn" onclick="toggleFullscreen()" title="Plein écran (f)">
+                                    <svg viewBox="0 0 24 24" fill="currentColor" id="fullscreenIcon">
+                                        <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Menu paramètres -->
+                        <div class="settings-menu" id="settingsMenu">
+                            <div class="settings-option" onclick="setPlaybackRate(0.5)">
+                                <span>Vitesse</span>
+                                <span id="speedValue">1x</span>
+                            </div>
+                            <div class="settings-option" onclick="toggleTheaterMode()">
+                                <span>Mode théâtre</span>
+                                <span id="theaterValue">Off</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </form>
-            {% for commentaire in commentaires %}
-            <div class="comment-list">
-                <div class="comment-item">
-                    <div class="user-avatar" style="background: #e11d48;">A</div>
-                    <div class="comment-content">
-                        <span class="comment-author">{{commentaire.user.username}}</span>
-                        <p class="comment-text">{{commentaire.contenu}}</p>
+
+                <!-- Infos vidéo -->
+                <div class="glass-panel rounded-2xl p-6 animate-fade-in" style="animation-delay: 0.1s;">
+                    <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-3">
+                                <h1 class="text-xl sm:text-2xl font-bold text-slate-900">{{ video.titre }}</h1>
+                                {% if video.is_free %}
+                                    <span class="inline-flex px-2.5 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full whitespace-nowrap">Gratuit</span>
+                                {% else %}
+                                    <span class="inline-flex px-2.5 py-1 bg-amber-100 text-amber-700 text-xs font-bold rounded-full whitespace-nowrap">Premium</span>
+                                {% endif %}
+                            </div>
+                            <div class="flex flex-wrap items-center gap-4 text-sm text-slate-500">
+                                {% if video.categorie %}
+                                    <a href="{% url 'video' %}?categorie={{ video.categorie.id }}" class="flex items-center gap-1.5 hover:text-blue-900 transition-colors group">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                                        </svg>
+                                        <span class="font-medium">{{ video.categorie.nom }}</span>
+                                        <svg class="w-3 h-3 text-slate-400 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                        </svg>
+                                    </a>
+                                {% endif %}
+                                <span class="flex items-center gap-1.5">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                    {{ video.date_publication|date:"d M Y" }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="flex items-center gap-2">
+                            <button id="likeBtn" onclick="toggleLike()" class="like-btn flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-all {% if user_has_liked %}liked{% endif %}">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"/>
+                                </svg>
+                                <span id="likeCount">{{ video.likes_count|default:0 }}</span>
+                            </button>
+                            <button onclick="shareVideo()" class="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-all">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+                                </svg>
+                                <span class="hidden sm:inline">Partager</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="border-t border-slate-200 pt-4">
+                        <h3 class="font-bold text-slate-900 mb-2">Description</h3>
+                        <p class="text-slate-600 text-sm leading-relaxed">{{ video.description|linebreaks }}</p>
+                    </div>
+                </div>
+
+                <!-- Commentaires -->
+                <div class="glass-panel rounded-2xl p-6 animate-fade-in" style="animation-delay: 0.2s;">
+                    <h3 class="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                        </svg>
+                        Commentaires <span id="commentCount" class="text-slate-500 font-normal">({{ commentaires.count }})</span>
+                    </h3>
+
+                    <!-- Formulaire -->
+                    {% if user.is_authenticated %}
+                    <form id="commentForm" method="post" class="mb-8">
+                        {% csrf_token %}
+                        <div class="flex gap-4">
+                            <div class="w-10 h-10 bg-gradient-to-br from-blue-900 to-blue-700 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
+                                {{ user.first_name|default:user.username|slice:":1"|upper }}
+                            </div>
+                            <div class="flex-1 relative">
+                                <textarea id="commentInput" name="contenu" rows="3" 
+                                          placeholder="Ajouter un commentaire..." required
+                                          class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-900/20 focus:border-blue-900 transition-all resize-none"></textarea>
+                                <button type="submit" class="absolute bottom-3 right-3 px-4 py-1.5 bg-blue-900 text-white text-xs font-bold rounded-lg hover:bg-blue-800 transition-all">
+                                    Envoyer
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    {% else %}
+                    <div class="mb-8 p-4 bg-slate-100 rounded-xl text-center">
+                        <p class="text-slate-600 text-sm">Connectez-vous pour ajouter un commentaire.</p>
+                        <a href="{% url 'connexion' %}" class="inline-block mt-2 text-blue-900 font-bold text-sm hover:underline">Se connecter</a>
+                    </div>
+                    {% endif %}
+
+                    <!-- Liste des commentaires -->
+                    <div id="commentList" class="space-y-6">
+                        {% for commentaire in commentaires %}
+                        <div class="flex gap-4 animate-fade-in comment-item">
+                            <div class="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
+                                {{ commentaire.user.first_name|default:commentaire.user.username|slice:":1"|upper }}
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="font-semibold text-slate-900 text-sm">{{ commentaire.user.username }}</span>
+                                    <span class="text-xs text-slate-500">{{ commentaire.created_at|date:"d/m/Y à H:i" }}</span>
+                                </div>
+                                <p class="text-slate-700 text-sm leading-relaxed">{{ commentaire.contenu }}</p>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-8">
+                            <svg class="w-12 h-12 text-slate-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                            </svg>
+                            <p class="text-slate-500 text-sm">Soyez le premier à commenter cette vidéo !</p>
+                        </div>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
-            {% endfor %}
-        </section>
+
+            <!-- Section Latérale (1/3) -->
+            <div class="space-y-6">
+                <!-- Recherche mobile -->
+                <div class="md:hidden">
+                    <div class="relative">
+                        <input type="text" id="searchInputMobile" placeholder="Rechercher une vidéo..." 
+                               class="w-full px-4 py-3 pl-11 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-900/20 focus:border-blue-900 transition-all">
+                        <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Statut abonnement -->
+                <div class="glass-panel rounded-2xl p-6">
+                    <h3 class="font-bold text-slate-900 mb-4">Votre statut</h3>
+                    {% if user_subscription and user_subscription.is_premium %}
+                        <div class="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-xl">
+                            <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="font-bold text-green-700 text-sm">Abonné {{ user_subscription.nom }}</p>
+                                <p class="text-xs text-green-600">{{ user_subscription.jours_restants }} jours restants</p>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="text-center p-4">
+                            <p class="text-slate-600 text-sm mb-3">Accédez à tout le contenu premium</p>
+                            <a href="{% url 'dashboard' %}" class="inline-block px-6 py-2.5 bg-blue-900 text-white text-sm font-bold rounded-xl hover:bg-blue-800 transition-all">
+                                Voir les offres
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast notification -->
+    <div id="toast" class="fixed bottom-6 right-6 px-6 py-4 bg-slate-900 text-white rounded-xl shadow-2xl transform translate-y-20 opacity-0 transition-all duration-300 z-50">
+        <span id="toastMessage"></span>
     </div>
 
     <script>
-        // Simulation simple pour les likes
-        let likes = 12;
-        function handleLike() {
-            likes++;
-            document.getElementById('likeCount').innerText = likes;
+        // ============================================
+        // LECTEUR VIDÉO PERSONNALISÉ STYLE YOUTUBE
+        // ============================================
+        const video = document.getElementById('mainVideo');
+        const videoPlayer = document.getElementById('videoPlayer');
+        const progressBar = document.getElementById('progressBar');
+        const progressBarFill = document.getElementById('progressBarFill');
+        const bufferBar = document.getElementById('bufferBar');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const volumeBtn = document.getElementById('volumeBtn');
+        const volumeIcon = document.getElementById('volumeIcon');
+        const volumeLevel = document.getElementById('volumeLevel');
+        const currentTimeEl = document.getElementById('currentTime');
+        const durationEl = document.getElementById('duration');
+        const settingsMenu = document.getElementById('settingsMenu');
+        const speedValue = document.getElementById('speedValue');
+        const fullscreenIcon = document.getElementById('fullscreenIcon');
+        
+        let isPlaying = false;
+        let currentSpeed = 1;
+        let isTheaterMode = false;
+        
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Démarrer la vidéo automatiquement
+            video.play().then(() => {
+                isPlaying = true;
+                updatePlayButton();
+            }).catch(e => console.log('Lecture auto bloquée par le navigateur'));
+            
+            // Mettre à jour la durée
+            video.addEventListener('loadedmetadata', () => {
+                durationEl.textContent = formatTime(video.duration);
+            });
+            
+            // Mettre à jour la progression
+            video.addEventListener('timeupdate', updateProgress);
+            
+            // Buffer
+            video.addEventListener('progress', updateBuffer);
+            
+            // Fin de vidéo
+            video.addEventListener('ended', () => {
+                isPlaying = false;
+                updatePlayButton();
+                videoPlayer.classList.add('paused');
+            });
+            
+            // Click sur la vidéo pour play/pause
+            video.addEventListener('click', togglePlay);
+            
+            // Double click pour plein écran
+            video.addEventListener('dblclick', toggleFullscreen);
+            
+            // Raccourcis clavier
+            document.addEventListener('keydown', handleKeyboard);
+        });
+        
+        // Play/Pause
+        function togglePlay() {
+            if (video.paused) {
+                video.play();
+                isPlaying = true;
+            } else {
+                video.pause();
+                isPlaying = false;
+            }
+            updatePlayButton();
+            videoPlayer.classList.toggle('paused', !isPlaying);
         }
+        
+        function updatePlayButton() {
+            if (isPlaying) {
+                playPauseBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+                playPauseBtn.setAttribute('title', 'Pause (k)');
+            } else {
+                playPauseBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+                playPauseBtn.setAttribute('title', 'Lecture (k)');
+            }
+        }
+        
+        // Arrêter
+        function stopVideo() {
+            video.pause();
+            video.currentTime = 0;
+            isPlaying = false;
+            updatePlayButton();
+            videoPlayer.classList.add('paused');
+        }
+        
+        // Progression
+        function updateProgress() {
+            const percent = (video.currentTime / video.duration) * 100;
+            progressBarFill.style.width = percent + '%';
+            currentTimeEl.textContent = formatTime(video.currentTime);
+        }
+        
+        function updateBuffer() {
+            if (video.buffered.length > 0) {
+                const bufferedEnd = video.buffered.end(video.buffered.length - 1);
+                const duration = video.duration;
+                if (duration > 0) {
+                    bufferBar.style.width = (bufferedEnd / duration) * 100 + '%';
+                }
+            }
+        }
+        
+        // Seek
+        function seekVideo(e) {
+            const rect = progressBar.getBoundingClientRect();
+            const pos = (e.clientX - rect.left) / rect.width;
+            video.currentTime = pos * video.duration;
+        }
+        
+        // Volume
+        function toggleMute() {
+            video.muted = !video.muted;
+            updateVolumeIcon();
+        }
+        
+        function updateVolumeIcon() {
+            if (video.muted || video.volume === 0) {
+                volumeIcon.innerHTML = '<path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>';
+            } else {
+                volumeIcon.innerHTML = '<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>';
+            }
+        }
+        
+        // Plein écran
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                videoPlayer.requestFullscreen().catch(err => {
+                    console.log('Erreur plein écran:', err);
+                });
+                fullscreenIcon.innerHTML = '<path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>';
+            } else {
+                document.exitFullscreen();
+                fullscreenIcon.innerHTML = '<path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>';
+            }
+        }
+        
+        // Paramètres
+        function toggleSettings() {
+            settingsMenu.classList.toggle('active');
+        }
+        
+        function setPlaybackRate(rate) {
+            currentSpeed = rate;
+            video.playbackRate = rate;
+            speedValue.textContent = rate + 'x';
+            settingsMenu.classList.remove('active');
+        }
+        
+        function toggleTheaterMode() {
+            isTheaterMode = !isTheaterMode;
+            videoPlayer.classList.toggle('theater-mode', isTheaterMode);
+            document.getElementById('theaterValue').textContent = isTheaterMode ? 'On' : 'Off';
+            settingsMenu.classList.remove('active');
+        }
+        
+        // Format temps
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return mins + ':' + (secs < 10 ? '0' : '') + secs;
+        }
+        
+        // Raccourcis clavier
+        function handleKeyboard(e) {
+            switch(e.key.toLowerCase()) {
+                case ' ':
+                case 'k':
+                    e.preventDefault();
+                    togglePlay();
+                    break;
+                case 'f':
+                    toggleFullscreen();
+                    break;
+                case 'm':
+                    toggleMute();
+                    break;
+                case 'arrowleft':
+                    video.currentTime -= 5;
+                    break;
+                case 'arrowright':
+                    video.currentTime += 5;
+                    break;
+                case 'arrowup':
+                    video.volume = Math.min(1, video.volume + 0.1);
+                    break;
+                case 'arrowdown':
+                    video.volume = Math.max(0, video.volume - 0.1);
+                    break;
+            }
+        }
+        
+        // Fermer le menu paramètres quand on clique ailleurs
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.settings-menu') && !e.target.closest('.control-btn')) {
+                settingsMenu.classList.remove('active');
+            }
+        });
+        
+        // ============================================
+        // FIN LECTEUR VIDÉO
+        // ============================================
+        
+        // Gestion des likes sans rechargement
+        let isLiked = {{ user_has_liked|yesno:"true,false" }};
+        let likeCount = {{ video.likes_count|default:0 }};
+
+        // Initialiser l'état du bouton like au chargement
+        document.addEventListener('DOMContentLoaded', function() {
+            const likeBtn = document.getElementById('likeBtn');
+            const likeCountEl = document.getElementById('likeCount');
+            if (isLiked) {
+                likeBtn.classList.add('liked');
+            }
+        });
+
+        function toggleLike() {
+            const likeBtn = document.getElementById('likeBtn');
+            const likeCountEl = document.getElementById('likeCount');
+            
+            isLiked = !isLiked;
+            likeCount += isLiked ? 1 : -1;
+            
+            likeBtn.classList.toggle('liked', isLiked);
+            likeCountEl.textContent = likeCount;
+            
+            // Envoyer la requête AJAX
+            fetch("{% url 'like_video' video.id %}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ liked: isLiked })
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Erreur HTTP');
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    likeCountEl.textContent = data.like_count;
+                } else {
+                    // Rollback en cas d'erreur
+                    rollbackLike();
+                }
+            })
+            .catch(err => {
+                console.error('Erreur like:', err);
+                rollbackLike();
+            });
+        }
+
+        function rollbackLike() {
+            const likeBtn = document.getElementById('likeBtn');
+            const likeCountEl = document.getElementById('likeCount');
+            isLiked = !isLiked;
+            likeCount += isLiked ? 1 : -1;
+            likeBtn.classList.toggle('liked', isLiked);
+            likeCountEl.textContent = likeCount;
+            showToast('Erreur lors du like');
+        }
+
+        // Gestion des commentaires sans rechargement
+        document.getElementById('commentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const input = document.getElementById('commentInput');
+            const contenu = input.value.trim();
+            const submitBtn = this.querySelector('button[type="submit"]');
+            
+            if (!contenu) return;
+            
+            // Désactiver le bouton pendant l'envoi
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Envoi...';
+            
+            fetch(window.location.href, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `contenu=${encodeURIComponent(contenu)}`
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Erreur HTTP');
+                return response.json();
+            })
+            .then(data => {
+                if (data.success && data.commentaire) {
+                    // Ajouter le commentaire à la liste
+                    addComment(data.commentaire);
+                    input.value = '';
+                    showToast('Commentaire ajouté avec succès !');
+                } else {
+                    showToast('Erreur lors de l\'envoi du commentaire');
+                }
+            })
+            .catch(err => {
+                console.error('Erreur:', err);
+                showToast('Erreur lors de l\'envoi du commentaire');
+            })
+            .finally(() => {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Envoyer';
+            });
+        });
+
+        function addComment(commentData) {
+            const commentList = document.getElementById('commentList');
+            const commentCountEl = document.getElementById('commentCount');
+            
+            // Supprimer le message "aucun commentaire" s'il existe
+            const emptyMsg = commentList.querySelector('.text-center');
+            if (emptyMsg) emptyMsg.remove();
+            
+            const commentHTML = `
+                <div class="flex gap-4 animate-fade-in comment-item">
+                    <div class="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
+                        ${commentData.user_initial}
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="font-semibold text-slate-900 text-sm">${escapeHtml(commentData.user)}</span>
+                            <span class="text-xs text-slate-500">${escapeHtml(commentData.created_at)}</span>
+                        </div>
+                        <p class="text-slate-700 text-sm leading-relaxed">${escapeHtml(commentData.contenu)}</p>
+                    </div>
+                </div>
+            `;
+            
+            commentList.insertAdjacentHTML('beforeend', commentHTML);
+            
+            // Mettre à jour le compteur
+            const count = parseInt(commentCountEl.textContent.replace(/\D/g, '')) || 0;
+            commentCountEl.textContent = `(${count + 1})`;
+        }
+
+        // Partager la vidéo
+        function shareVideo() {
+            const url = window.location.href;
+            navigator.clipboard.writeText(url).then(() => {
+                showToast('Lien copié dans le presse-papier !');
+            }).catch(() => {
+                showToast('Erreur lors de la copie du lien');
+            });
+        }
+
+        // Afficher un toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            toastMessage.textContent = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // Helper: Get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Helper: Escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Recherche avec suggestions
+        const searchInput = document.getElementById('searchInput');
+        const searchInputMobile = document.getElementById('searchInputMobile');
+        const searchSuggestions = document.getElementById('searchSuggestions');
+        const suggestionsContent = document.getElementById('suggestionsContent');
+
+        let debounceTimer;
+        [searchInput, searchInputMobile].filter(Boolean).forEach(input => {
+            input.addEventListener('input', function(e) {
+                const query = e.target.value.trim();
+                
+                clearTimeout(debounceTimer);
+                if (query.length >= 2) {
+                    debounceTimer = setTimeout(() => {
+                        showSearchSuggestions(query);
+                    }, 150);
+                } else {
+                    searchSuggestions.classList.add('hidden');
+                }
+            });
+
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const query = this.value.trim();
+                    if (query) {
+                        window.location.href = `{% url 'video' %}?q=${encodeURIComponent(query)}`;
+                    }
+                }
+            });
+        });
+
+        function showSearchSuggestions(query) {
+            fetch(`{% url 'api_search_videos' %}?q=${encodeURIComponent(query)}&limit=6`)
+                .then(response => response.json())
+                .then(data => {
+                    const videos = data.videos || [];
+                    
+                    if (videos.length === 0) {
+                        searchSuggestions.classList.add('hidden');
+                        return;
+                    }
+
+                    let html = '';
+                    
+                    // En-tête
+                    html += '<div class="p-3 border-b border-slate-100 bg-slate-50 rounded-t-xl"><p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Vidéos trouvées</p></div>';
+                    
+                    // Suggestions de vidéos
+                    html += videos.map(video => `
+                        <a href="${video.url}" class="flex gap-3 px-4 py-3 hover:bg-slate-50 transition-colors">
+                            <div class="w-28 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-slate-800 relative">
+                                ${video.miniature 
+                                    ? `<img src="${video.miniature}" alt="${video.titre}" class="w-full h-full object-cover">`
+                                    : `<div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-900 to-indigo-950">
+                                        <svg class="w-6 h-6 text-white/40" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M8 5v14l11-7z"/>
+                                        </svg>
+                                    </div>`
+                                }
+                                <div class="absolute bottom-1 right-1">
+                                    ${video.is_free 
+                                        ? '<span class="text-[8px] px-1 py-0.5 bg-green-600 text-white rounded font-bold">Gratuit</span>'
+                                        : '<span class="text-[8px] px-1 py-0.5 bg-amber-600 text-white rounded font-bold">Premium</span>'
+                                    }
+                                </div>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-semibold text-slate-900 text-sm line-clamp-2">${highlightMatch(video.titre, query)}</p>
+                                <p class="text-xs text-slate-500 mt-0.5">${video.categorie || 'Non catégorisé'}</p>
+                                <p class="text-xs text-slate-400 mt-1">${video.date_pub}</p>
+                            </div>
+                        </a>
+                    `).join('');
+
+                    suggestionsContent.innerHTML = html;
+                    searchSuggestions.classList.remove('hidden');
+                })
+                .catch(err => {
+                    console.error('Erreur recherche:', err);
+                    searchSuggestions.classList.add('hidden');
+                });
+        }
+
+        function highlightMatch(text, query) {
+            const regex = new RegExp(`(${query})`, 'gi');
+            return text.replace(regex, '<mark class="bg-amber-200 text-slate-900 px-0.5 rounded">$1</mark>');
+        }
+
+        // Cacher les suggestions au clic en dehors
+        document.addEventListener('click', function(e) {
+            if (searchInput && !searchInput.contains(e.target) && 
+                searchSuggestions && !searchSuggestions.contains(e.target)) {
+                searchSuggestions.classList.add('hidden');
+            }
+        });
     </script>
 
 </body>
