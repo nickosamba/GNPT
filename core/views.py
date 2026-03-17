@@ -328,15 +328,18 @@ def streaming(request, id):
             profile = request.user.profile
             abonnement = profile.get_active_subscription()
             user_has_subscription = bool(abonnement)
+            
             # Si l'utilisateur a un abonnement, toutes les vidéos sont accessibles
-            is_accessible = True
+            if user_has_subscription:
+                is_accessible = True
+            
             # Vérifier si l'utilisateur a déjà liké cette vidéo
             from .models import Like
             user_has_liked = Like.objects.filter(user=request.user, video=video).exists()
         except Exception:
             pass
 
-    # Si la vidéo n'est pas accessible, rediriger ou afficher un message
+    # Si la vidéo n'est pas accessible (premium sans abonnement), rediriger
     if not is_accessible:
         messages.warning(request, "Cette vidéo est réservée aux abonnés. Veuillez souscrire à un abonnement pour y accéder.")
         return redirect("dashboard")
@@ -368,6 +371,39 @@ def streaming(request, id):
         "user_has_liked": user_has_liked,
     }
     return render(request, "streaming/streaming.html", context)
+
+
+@login_required
+def stream_video_file(request, id):
+    """
+    Endpoint sécurisé pour servir le fichier vidéo.
+    Vérifie que l'utilisateur a le droit de voir la vidéo.
+    """
+    from django.http import FileResponse, HttpResponse
+    video = get_object_or_404(Video, id=id)
+    
+    # Vérifier les permissions
+    if not video.is_free:
+        # Vidéo premium - vérifier l'abonnement
+        try:
+            profile = request.user.profile
+            abonnement = profile.get_active_subscription()
+            if not abonnement:
+                messages.error(request, "Cette vidéo est réservée aux abonnés.")
+                return redirect("dashboard")
+        except Exception:
+            messages.error(request, "Cette vidéo est réservée aux abonnés.")
+            return redirect("dashboard")
+    
+    # Servir le fichier vidéo
+    import os
+    
+    if video.fichier_video:
+        response = FileResponse(video.fichier_video)
+        response['Content-Type'] = 'video/mp4'
+        return response
+    
+    return HttpResponse("Video not found", status=404)
 
 
 @login_required

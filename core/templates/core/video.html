@@ -322,31 +322,64 @@
                 return;
             }
 
-            suggestionsContent.innerHTML = filteredVideos.map(video => `
-                <a href="${video.url}" class="flex gap-3 px-4 py-3 hover:bg-slate-50 transition-colors group">
-                    <div class="w-32 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-slate-200 relative">
-                        ${video.miniature 
-                            ? `<img src="${video.miniature}" alt="${video.titre}" class="w-full h-full object-cover">`
-                            : `<div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-900 to-indigo-950">
-                                <svg class="w-8 h-8 text-white/40" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M8 5v14l11-7z"/>
-                                </svg>
-                            </div>`
-                        }
-                        <div class="absolute bottom-1 right-1">
-                            ${video.isFree 
-                                ? '<span class="text-[8px] px-1 py-0.5 bg-green-500 text-white rounded-full font-bold">Gratuit</span>'
-                                : '<span class="text-[8px] px-1 py-0.5 bg-amber-500 text-white rounded-full font-bold">Premium</span>'
+            suggestionsContent.innerHTML = filteredVideos.map(video => {
+                // Vérifier si la vidéo est premium et si l'utilisateur a un abonnement
+                const isPremium = !video.isFree;
+                const userHasSubscription = false; // Sera mis à jour par le template
+                
+                let clickAction = '';
+                let badgeClass = '';
+                let badgeText = '';
+                let lockIcon = '';
+                
+                if (video.isFree) {
+                    // Vidéo gratuite - accès direct
+                    clickAction = `href="${video.url}"`;
+                    badgeClass = 'bg-green-500';
+                    badgeText = 'Gratuit';
+                } else {
+                    // Vidéo premium
+                    const hasSubscription = {{ user.profile.is_premium|yesno:"true,false" }};
+                    if (hasSubscription) {
+                        // Utilisateur premium - accès direct
+                        clickAction = `href="${video.url}"`;
+                        badgeClass = 'bg-amber-500';
+                        badgeText = 'Premium';
+                    } else {
+                        // Utilisateur gratuit - rediriger vers abonnement
+                        clickAction = `href="{% url 'dashboard' %}#abonnement" onclick="event.preventDefault(); window.location.href='{% url 'dashboard' %}#abonnement';"`
+                        badgeClass = 'bg-red-500';
+                        badgeText = '🔒 Premium';
+                        lockIcon = '<svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/></svg>';
+                    }
+                }
+                
+                return `
+                    <a ${clickAction} class="flex gap-3 px-4 py-3 hover:bg-slate-50 transition-colors group ${!video.isFree && !{{ user.profile.is_premium|yesno:"true,false" }} ? 'opacity-75' : ''}">
+                        <div class="w-32 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-slate-200 relative">
+                            ${video.miniature 
+                                ? `<img src="${video.miniature}" alt="${video.titre}" class="w-full h-full object-cover">`
+                                : `<div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-900 to-indigo-950">
+                                    <svg class="w-8 h-8 text-white/40" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M8 5v14l11-7z"/>
+                                    </svg>
+                                </div>`
                             }
+                            <div class="absolute bottom-1 right-1">
+                                <span class="text-[8px] px-1 py-0.5 ${badgeClass} text-white rounded-full font-bold flex items-center">
+                                    ${lockIcon}${badgeText}
+                                </span>
+                            </div>
                         </div>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <p class="font-semibold text-slate-900 text-sm line-clamp-2">${highlightMatch(video.titre, q)}</p>
-                        <p class="text-xs text-slate-500 mt-1">${video.categorie || 'Non catégorisé'}</p>
-                        <p class="text-xs text-slate-400 mt-2">${video.datePub}</p>
-                    </div>
-                </a>
-            `).join('');
+                        <div class="flex-1 min-w-0">
+                            <p class="font-semibold text-slate-900 text-sm line-clamp-2">${highlightMatch(video.titre, q)}</p>
+                            <p class="text-xs text-slate-500 mt-0.5">${video.categorie || 'Non catégorisé'}</p>
+                            <p class="text-xs text-slate-400 mt-1">${video.datePub}</p>
+                            ${!video.isFree && !{{ user.profile.is_premium|yesno:"true,false" }} ? '<p class="text-[9px] text-red-600 font-bold mt-1">⚠️ Abonnement requis pour accéder à cette vidéo</p>' : ''}
+                        </div>
+                    </a>
+                `;
+            }).join('');
 
             searchSuggestions.classList.remove('hidden');
         }

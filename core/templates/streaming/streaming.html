@@ -325,7 +325,7 @@
                 <!-- Lecteur vidéo personnalisé style YouTube -->
                 <div class="video-player animate-fade-in" id="videoPlayer">
                     <video id="mainVideo" poster="{% if video.miniature %}{{ video.miniature.url }}{% endif %}">
-                        <source src="{{ video.fichier_video.url }}" type="video/mp4">
+                        <source src="{% url 'stream_video_file' video.id %}" type="video/mp4">
                         Votre navigateur ne supporte pas la lecture vidéo.
                     </video>
                     
@@ -461,10 +461,47 @@
                         </div>
                     </div>
 
-                    <!-- Description -->
+                    <!-- Description avec accordéon -->
                     <div class="border-t border-slate-200 pt-4">
-                        <h3 class="font-bold text-slate-900 mb-2">Description</h3>
-                        <p class="text-slate-600 text-sm leading-relaxed">{{ video.description|linebreaks }}</p>
+                        <button onclick="toggleDescription()" class="flex items-center justify-between w-full text-left hover:bg-slate-50 p-3 rounded-xl transition-colors" id="descriptionToggle">
+                            <h3 class="font-bold text-slate-900 flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                                Description
+                            </h3>
+                            <svg class="w-5 h-5 text-slate-400 transition-transform transform" id="chevronIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
+                        
+                        <!-- Résumé de la description (toujours visible) -->
+                        <div id="descriptionSummary" class="mt-3">
+                            <p class="text-slate-600 text-sm leading-relaxed">
+                                {{ video.description|truncatechars:150 }}{% if video.description|length > 150 %}...{% endif %}
+                            </p>
+                            {% if video.description|length > 150 %}
+                            <button onclick="toggleDescription()" class="text-blue-900 font-bold text-sm mt-2 hover:underline flex items-center gap-1">
+                                <span id="expandText">Lire la description complète</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </button>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Description complète (cachée par défaut) -->
+                        <div id="fullDescription" class="mt-3 hidden">
+                            <p class="text-slate-600 text-sm leading-relaxed whitespace-pre-line">
+                                {{ video.description|linebreaks }}
+                            </p>
+                            <button onclick="toggleDescription()" class="text-slate-500 font-bold text-sm mt-2 hover:text-blue-900 flex items-center gap-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>
+                                </svg>
+                                <span>Réduire</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -783,6 +820,28 @@
         // FIN LECTEUR VIDÉO
         // ============================================
         
+        // Accordéon pour la description
+        let descriptionExpanded = false;
+        
+        function toggleDescription() {
+            const summary = document.getElementById('descriptionSummary');
+            const full = document.getElementById('fullDescription');
+            const chevron = document.getElementById('chevronIcon');
+            const expandText = document.getElementById('expandText');
+            
+            descriptionExpanded = !descriptionExpanded;
+            
+            if (descriptionExpanded) {
+                summary.classList.add('hidden');
+                full.classList.remove('hidden');
+                chevron.classList.add('rotate-180');
+            } else {
+                summary.classList.remove('hidden');
+                full.classList.add('hidden');
+                chevron.classList.remove('rotate-180');
+            }
+        }
+        
         // Gestion des likes sans rechargement
         let isLiked = {{ user_has_liked|yesno:"true,false" }};
         let likeCount = {{ video.likes_count|default:0 }};
@@ -1000,43 +1059,78 @@
                 .then(response => response.json())
                 .then(data => {
                     const videos = data.videos || [];
-                    
+
                     if (videos.length === 0) {
                         searchSuggestions.classList.add('hidden');
                         return;
                     }
 
                     let html = '';
-                    
+
                     // En-tête
                     html += '<div class="p-3 border-b border-slate-100 bg-slate-50 rounded-t-xl"><p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Vidéos trouvées</p></div>';
-                    
+
+                    // Vérifier si l'utilisateur a un abonnement
+                    const hasSubscription = {{ user.profile.is_premium|yesno:"true,false" }};
+
                     // Suggestions de vidéos
-                    html += videos.map(video => `
-                        <a href="${video.url}" class="flex gap-3 px-4 py-3 hover:bg-slate-50 transition-colors">
-                            <div class="w-28 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-slate-800 relative">
-                                ${video.miniature 
-                                    ? `<img src="${video.miniature}" alt="${video.titre}" class="w-full h-full object-cover">`
-                                    : `<div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-900 to-indigo-950">
-                                        <svg class="w-6 h-6 text-white/40" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M8 5v14l11-7z"/>
-                                        </svg>
-                                    </div>`
-                                }
-                                <div class="absolute bottom-1 right-1">
-                                    ${video.is_free 
-                                        ? '<span class="text-[8px] px-1 py-0.5 bg-green-600 text-white rounded font-bold">Gratuit</span>'
-                                        : '<span class="text-[8px] px-1 py-0.5 bg-amber-600 text-white rounded font-bold">Premium</span>'
+                    html += videos.map(video => {
+                        let clickAction = '';
+                        let badgeClass = '';
+                        let badgeText = '';
+                        let lockIcon = '';
+                        let opacityClass = '';
+                        let warningText = '';
+                        
+                        if (video.is_free) {
+                            // Vidéo gratuite - accès direct
+                            clickAction = `href="${video.url}"`;
+                            badgeClass = 'bg-green-600';
+                            badgeText = 'Gratuit';
+                        } else {
+                            // Vidéo premium
+                            if (hasSubscription) {
+                                // Utilisateur premium - accès direct
+                                clickAction = `href="${video.url}"`;
+                                badgeClass = 'bg-amber-600';
+                                badgeText = 'Premium';
+                            } else {
+                                // Utilisateur gratuit - rediriger vers abonnement
+                                clickAction = `href="{% url 'dashboard' %}#abonnement" onclick="event.preventDefault(); window.location.href='{% url 'dashboard' %}#abonnement';"`
+                                badgeClass = 'bg-red-600';
+                                badgeText = '🔒 Premium';
+                                lockIcon = '<svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/></svg>';
+                                opacityClass = 'opacity-75';
+                                warningText = '<p class="text-[9px] text-red-600 font-bold mt-1">⚠️ Abonnement requis</p>';
+                            }
+                        }
+                        
+                        return `
+                            <a ${clickAction} class="flex gap-3 px-4 py-3 hover:bg-slate-50 transition-colors ${opacityClass}">
+                                <div class="w-28 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-slate-800 relative">
+                                    ${video.miniature
+                                        ? `<img src="${video.miniature}" alt="${video.titre}" class="w-full h-full object-cover">`
+                                        : `<div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-900 to-indigo-950">
+                                            <svg class="w-6 h-6 text-white/40" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M8 5v14l11-7z"/>
+                                            </svg>
+                                        </div>`
                                     }
+                                    <div class="absolute bottom-1 right-1">
+                                        <span class="text-[8px] px-1 py-0.5 ${badgeClass} text-white rounded font-bold flex items-center">
+                                            ${lockIcon}${badgeText}
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <p class="font-semibold text-slate-900 text-sm line-clamp-2">${highlightMatch(video.titre, query)}</p>
-                                <p class="text-xs text-slate-500 mt-0.5">${video.categorie || 'Non catégorisé'}</p>
-                                <p class="text-xs text-slate-400 mt-1">${video.date_pub}</p>
-                            </div>
-                        </a>
-                    `).join('');
+                                <div class="flex-1 min-w-0">
+                                    <p class="font-semibold text-slate-900 text-sm line-clamp-2">${highlightMatch(video.titre, query)}</p>
+                                    <p class="text-xs text-slate-500 mt-0.5">${video.categorie || 'Non catégorisé'}</p>
+                                    <p class="text-xs text-slate-400 mt-1">${video.date_pub}</p>
+                                    ${warningText}
+                                </div>
+                            </a>
+                        `;
+                    }).join('');
 
                     suggestionsContent.innerHTML = html;
                     searchSuggestions.classList.remove('hidden');
