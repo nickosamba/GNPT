@@ -55,7 +55,14 @@
             <!-- Détails de l'offre -->
             <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100 mb-6">
                 <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-2xl font-black text-blue-900">{{ offre.nom }}</h2>
+                    <div class="flex items-center gap-3">
+                        <h2 class="text-2xl font-black text-blue-900">{{ offre.nom }}</h2>
+                        {% if offre.is_recommended %}
+                        <span class="bg-gradient-to-r from-amber-400 to-orange-400 text-white text-xs font-black px-3 py-1.5 rounded-full uppercase shadow-lg">
+                            ⭐ Recommandé
+                        </span>
+                        {% endif %}
+                    </div>
                     <span class="bg-amber-400 text-blue-900 text-xs font-black px-3 py-1.5 rounded-full uppercase">
                         {{ offre.duree_jours }} jours
                     </span>
@@ -67,41 +74,24 @@
                     <span class="text-xl text-slate-500 font-bold">FCFA</span>
                 </div>
 
-                <!-- Fonctionnalités -->
-                <div class="space-y-3">
-                    {% if offre.can_access_videos %}
-                    <div class="flex items-center gap-3">
-                        <div class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
-                            <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
-                            </svg>
-                        </div>
-                        <span class="text-sm font-medium text-slate-700">Accès illimité aux vidéos</span>
-                    </div>
-                    {% endif %}
-
-                    {% if offre.can_access_books %}
-                    <div class="flex items-center gap-3">
-                        <div class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
-                            <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
-                            </svg>
-                        </div>
-                        <span class="text-sm font-medium text-slate-700">Accès à la bibliothèque de livres</span>
-                    </div>
-                    {% endif %}
-
-                    {% if offre.can_use_ai_chat %}
-                    <div class="flex items-center gap-3">
-                        <div class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
-                            <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
-                            </svg>
-                        </div>
-                        <span class="text-sm font-medium text-slate-700">Accès à l'IA Chat ({{ offre.storage_limit_mb }} Mo de stockage)</span>
-                    </div>
-                    {% endif %}
+                <!-- Spécificités personnalisées -->
+                {% if offre.get_specificites_list %}
+                <div class="mb-6">
+                    <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wider mb-3">Ce que vous obtenez :</h3>
+                    <ul class="space-y-2">
+                        {% for specificite in offre.get_specificites_list %}
+                        <li class="flex items-center gap-3">
+                            <div class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                                <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                                </svg>
+                            </div>
+                            <span class="text-sm font-medium text-slate-700">{{ specificite }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
                 </div>
+                {% endif %}
             </div>
 
             <!-- Informations utilisateur -->

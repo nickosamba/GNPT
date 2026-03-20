@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from decouple import config
 from dotenv import load_dotenv
 
@@ -6,7 +7,7 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Charger les variables d'environnement du fichier .env
-load_dotenv(BASE_DIR / '.env')
+load_dotenv(BASE_DIR / ".env")
 
 
 # Quick-start development settings - unsuitable for production
@@ -22,6 +23,8 @@ ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
     ".ngrok-free.dev",
+    "omerpay.share.zrok.io",
+    "192.168.1.166",
 ]
 
 # SECURE_SSL_REDIRECT = True
@@ -35,9 +38,32 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 CSRF_TRUSTED_ORIGINS = [
     "https://marge-unerasing-mila.ngrok-free.dev",
     "https://*.ngrok-free.dev",
+    "https://omerpay.share.zrok.io",
+    "http://127.0.0.1:8000",
+    "http://localhost:8000",
+    "http://192.168.1.166:8000",
 ]
 
-# Application definition
+# Configuration Google OAuth
+# django-allauth automatically handles redirect URIs based on the request
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "APP": {
+            "client_id": config("GOOGLE_CLIENT_ID", default=""),
+            "secret": config("GOOGLE_CLIENT_SECRET", default=""),
+            "key": "",
+        },
+        "SCOPE": [
+            "profile",
+            "email",
+        ],
+        "AUTH_PARAMS": {
+            "access_type": "online",
+        },
+        # Force le protocol http en local
+        "REDIRECT_URI_PROTOCOL": "http",
+    }
+}
 
 INSTALLED_APPS = [
     # unlfold
@@ -76,24 +102,6 @@ ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_EMAIL_VERIFICATION = "optional"  # ou 'mandatory' pour forcer la vérification
 ACCOUNT_UNIQUE_EMAIL = True
 
-# Configuration Google OAuth
-SOCIALACCOUNT_PROVIDERS = {
-    "google": {
-        "APP": {
-            "client_id": config("GOOGLE_CLIENT_ID", default=""),
-            "secret": config("GOOGLE_CLIENT_SECRET", default=""),
-            "key": "",
-        },
-        "SCOPE": [
-            "profile",
-            "email",
-        ],
-        "AUTH_PARAMS": {
-            "access_type": "online",
-        },
-    }
-}
-
 # URLs autorisées pour Google OAuth (local + ngrok + production)
 SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
 SOCIALACCOUNT_AUTO_SIGNUP = True
@@ -101,8 +109,14 @@ SOCIALACCOUNT_AUTO_SIGNUP = True
 # Redirection après connexion sociale
 SOCIALACCOUNT_LOGIN_ON_GET = True
 
-# Custom adapter for handling Google OAuth
-SOCIALACCOUNT_ADAPTER = "core.adapter.CustomSocialAccountAdapter"
+# Permettre les connexions HTTP en local (désactiver en production)
+if DEBUG:
+    ACCOUNT_DEFAULT_HTTP_PROTOCOL = "http"
+else:
+    ACCOUNT_DEFAULT_HTTP_PROTOCOL = "https"
+
+# Custom adapter for handling Google OAuth (temporairement désactivé pour debug)
+# SOCIALACCOUNT_ADAPTER = "core.adapter.CustomSocialAccountAdapter"
 
 
 MIDDLEWARE = [

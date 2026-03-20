@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test OAuth Debug</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6">🔍 Google OAuth Debug</h1>
+        
+        <!-- Configuration actuelle -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">📋 Configuration actuelle</h2>
+            <div class="space-y-2 text-sm">
+                <p><strong>DEBUG:</strong> {{ debug }}</p>
+                <p><strong>ALLOWED_HOSTS:</strong> {{ allowed_hosts|join:", " }}</p>
+                <p><strong>ACCOUNT_DEFAULT_HTTP_PROTOCOL:</strong> {{ http_protocol }}</p>
+                <p><strong>GOOGLE_CLIENT_ID:</strong> {{ google_client_id|truncatechars:50 }}...</p>
+                <p><strong>GOOGLE_CLIENT_SECRET:</strong> {{ google_client_secret|truncatechars:20 }}...</p>
+            </div>
+        </div>
+
+        <!-- URLs de callback -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">🔗 URLs de callback à configurer</h2>
+            <p class="text-sm text-gray-600 mb-4">Copie ces URLs dans la Google Cloud Console → Authorized redirect URIs</p>
+            <div class="bg-gray-50 p-4 rounded-lg font-mono text-sm space-y-2">
+                <p class="text-green-600">http://127.0.0.1:8000/accounts/google/login/callback/</p>
+                <p class="text-green-600">http://localhost:8000/accounts/google/login/callback/</p>
+                <p class="text-blue-600">https://127.0.0.1:8000/accounts/google/login/callback/</p>
+                <p class="text-purple-600">https://omerpay.share.zrok.io/accounts/google/login/callback/</p>
+            </div>
+        </div>
+
+        <!-- Test de connexion -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">🧪 Test de connexion</h2>
+            <div class="space-y-4">
+                <a href="/accounts/google/login/" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
+                    Tester connexion Google
+                </a>
+                <a href="/accounts/login/" class="inline-block bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700">
+                    Page de login normale
+                </a>
+            </div>
+        </div>
+
+        <!-- Erreurs courantes -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">❌ Erreurs courantes et solutions</h2>
+            <div class="space-y-4 text-sm">
+                <div class="border-l-4 border-red-500 pl-4">
+                    <p class="font-semibold text-red-600">redirect_uri_mismatch</p>
+                    <p>L'URL de callback ne correspond pas à celle configurée dans Google Cloud Console.</p>
+                    <p class="mt-2 text-gray-600"><strong>Solution:</strong> Ajoute exactement l'URL affichée ci-dessus dans la console Google.</p>
+                </div>
+                <div class="border-l-4 border-yellow-500 pl-4">
+                    <p class="font-semibold text-yellow-600">disallowed_redirect_uri</p>
+                    <p>L'hôte n'est pas dans ALLOWED_HOSTS.</p>
+                    <p class="mt-2 text-gray-600"><strong>Solution:</strong> Ajoute l'hôte dans ALLOWED_HOSTS dans settings.py.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mt-6">
+            <h2 class="text-xl font-semibold mb-4">📝 Instructions étape par étape</h2>
+            <ol class="list-decimal list-inside space-y-2 text-sm">
+                <li>Va sur <a href="https://console.cloud.google.com/apis/credentials" target="_blank" class="text-blue-600 underline">Google Cloud Console</a></li>
+                <li>Sélectionne ton projet</li>
+                <li>Clique sur ton "OAuth 2.0 Client ID"</li>
+                <li>Dans "Authorized redirect URIs", ajoute les URLs ci-dessus</li>
+                <li>Clique sur "Save"</li>
+                <li>Attends 5-10 minutes</li>
+                <li>Redémarre le serveur Django</li>
+                <li>Teste la connexion</li>
+            </ol>
+        </div>
+    </div>
+</body>
+</html>

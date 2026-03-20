@@ -1,0 +1,122 @@
+{% extends "admin/change_form.html" %}
+
+{% block extrahead %}
+{{ block.super }}
+<script type="text/javascript">
+document.addEventListener('DOMContentLoaded', function() {
+    // Attendre que jQuery soit chargé
+    function initSpecificites() {
+        if (typeof django === 'undefined' || !django.jQuery) {
+            setTimeout(initSpecificites, 100);
+            return;
+        }
+        
+        var $ = django.jQuery;
+        
+        // Gestion des spécificités dynamiques
+        var $specificitesField = $('#id_specificites');
+        if ($specificitesField.length === 0) return;
+        
+        // Créer le container dynamique
+        var $specificitesContainer = $('<div id="specificites-dynamic" class="specificites-container"></div>');
+        var $addBtn = $('<button type="button" class="btn btn-secondary" id="add-specificite-btn" style="margin-top: 10px;">+ Ajouter une spécificité</button>');
+        
+        // Insérer après le champ textarea
+        $specificitesField.parent().append($specificitesContainer);
+        $specificitesField.parent().append($addBtn);
+        
+        // Cacher le champ textarea original mais garder sa valeur
+        $specificitesField.css('display', 'none');
+        
+        var $dynamicContainer = $('#specificites-dynamic');
+        
+        // Fonction pour créer un input de spécificité
+        function createSpecificiteInput(value) {
+            var $wrapper = $('<div class="specificite-input-wrapper"></div>');
+            var $input = $('<input type="text" class="vTextField" placeholder="Ex: Accès illimité aux vidéos" value="" />');
+            var $removeBtn = $('<button type="button" class="deletelink btn btn-danger" style="margin-left: 10px;">Supprimer</button>');
+            
+            if (value) {
+                $input.val(value);
+            }
+            
+            $removeBtn.on('click', function() {
+                $wrapper.remove();
+                updateHiddenField();
+            });
+            
+            $input.on('input change', updateHiddenField);
+            
+            $wrapper.append($input).append($removeBtn);
+            return $wrapper;
+        }
+        
+        // Fonction pour mettre à jour le champ caché
+        function updateHiddenField() {
+            var values = [];
+            $('#specificites-dynamic input[type="text"]').each(function() {
+                var val = $(this).val().trim();
+                if (val) {
+                    values.push(val);
+                }
+            });
+            $specificitesField.val(values.join('\n'));
+        }
+        
+        // Fonction pour ajouter une nouvelle spécificité
+        function addSpecificite() {
+            var $input = createSpecificiteInput();
+            $dynamicContainer.append($input);
+            $input.find('input').focus();
+            updateHiddenField();
+        }
+        
+        // Charger les valeurs existantes
+        var existingValue = $specificitesField.val();
+        if (existingValue) {
+            var lines = existingValue.split('\n');
+            lines.forEach(function(line) {
+                if (line.trim()) {
+                    $dynamicContainer.append(createSpecificiteInput(line.trim()));
+                }
+            });
+        }
+        
+        // Bouton pour ajouter
+        $addBtn.on('click', function(e) {
+            e.preventDefault();
+            addSpecificite();
+        });
+        
+        // Initialiser le champ caché
+        updateHiddenField();
+    }
+    
+    initSpecificites();
+});
+</script>
+<style>
+.specificites-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+    padding: 15px;
+    background: #f9f9f9;
+    border-radius: 4px;
+    border: 1px solid #e0e0e0;
+}
+.specificite-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.specificite-input-wrapper input {
+    flex: 1;
+    min-width: 200px;
+}
+#add-specificite-btn {
+    align-self: flex-start;
+}
+</style>
+{% endblock %}

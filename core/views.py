@@ -8,6 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.utils import timezone
 from django.db import models
+from django.conf import settings
 import json
 import uuid
 import logging
@@ -16,6 +17,18 @@ from .models import OffreAbonnement, Paiement, Profile, Abonnement, Video, Comme
 from .openpay_service import openpay_service, OpenPayError, OPENPAY_API_KEY
 
 logger = logging.getLogger(__name__)
+
+
+def debug_oauth(request):
+    """Page de débogage pour Google OAuth."""
+    context = {
+        'debug': settings.DEBUG,
+        'allowed_hosts': settings.ALLOWED_HOSTS,
+        'http_protocol': getattr(settings, 'ACCOUNT_DEFAULT_HTTP_PROTOCOL', 'http'),
+        'google_client_id': settings.SOCIALACCOUNT_PROVIDERS.get('google', {}).get('APP', {}).get('client_id', ''),
+        'google_client_secret': settings.SOCIALACCOUNT_PROVIDERS.get('google', {}).get('APP', {}).get('secret', ''),
+    }
+    return render(request, 'debug_oauth.html', context)
 
 
 def home(request):
@@ -63,49 +76,6 @@ def deconnexion(request):
 
 
 @login_required
-def video(request):
-    """Page de catalogue des vidéos avec recherche et filtres."""
-    query = request.GET.get('q', '')
-    categorie_id = request.GET.get('categorie', '')
-
-    videos = Video.objects.filter(is_active=True)
-    categories = Categorie.objects.filter(is_active=True)
-    selected_category = None
-
-    # Filtrer par recherche
-    if query:
-        videos = videos.filter(
-            models.Q(titre__icontains=query) |
-            models.Q(description__icontains=query)
-        )
-
-    # Filtrer par catégorie
-    if categorie_id:
-        try:
-            selected_category = Categorie.objects.get(id=int(categorie_id), is_active=True)
-            videos = videos.filter(categorie=selected_category)
-        except (ValueError, TypeError, Categorie.DoesNotExist):
-            pass
-
-    # Filtrer par gratuit/premium
-    free_filter = request.GET.get('free', '')
-    if free_filter == 'true':
-        videos = videos.filter(is_free=True)
-    elif free_filter == 'false':
-        videos = videos.filter(is_free=False)
-
-    context = {
-        'videos': videos,
-        'categories': categories,
-        'selected_category': selected_category,
-        'query': query,
-        'selected_categorie': categorie_id,
-        'free_filter': free_filter,
-    }
-    return render(request, 'core/video.html', context)
-
-
-@login_required
 def api_search_videos(request):
     """API endpoint pour la recherche de vidéos avec suggestions."""
     query = request.GET.get('q', '')
@@ -141,6 +111,7 @@ def api_search_videos(request):
 def dashboard(request):
     """Tableau de bord utilisateur connecté."""
     from .models import OffreAbonnement, Paiement, Categorie, Video
+    from django.utils import timezone
     offres = OffreAbonnement.objects.all()
     # Récupérer les 5 derniers paiements de l'utilisateur
     paiements = Paiement.objects.filter(user=request.user).order_by('-date_creation')[:5]
@@ -148,13 +119,59 @@ def dashboard(request):
     categories = Categorie.objects.filter(is_active=True)
     # Récupérer 6 vidéos recommandées (gratuites et payantes)
     videos_recommandees = Video.objects.filter(is_active=True).order_by('-date_publication')[:6]
-    return render(request, "core/dashboard.html", {
+    
+    # Vérifier le statut de l'abonnement en utilisant premium_until comme source de vérité
+    profile = request.user.profile
+    now = timezone.now()
+    
+    has_active_subscription = bool(profile.premium_until and profile.premium_until > now)
+    jours_restants = None
+    show_renewal_alert = False
+    
+    if has_active_subscription:
+        delta = profile.premium_until - now
+        # Calculer les jours restants (peut être 0 si moins d'un jour)
+        jours_restants = delta.days
+        heures_restantes = delta.seconds // 3600
+        minutes_restantes = (delta.seconds % 3600) // 60
+
+        # Afficher l'alerte si 5 jours ou moins avant la fin
+        if jours_restants <= 5:
+            show_renewal_alert = True
+
+    # Récupérer l'abonnement pour affichage
+    abonnement = profile.get_active_subscription()
+
+    # Calculer le temps restant détaillé pour l'affichage
+    temps_restant_detail = ""
+    if has_active_subscription:
+        delta = profile.premium_until - now
+        jours = delta.days
+        heures = delta.seconds // 3600
+        minutes = (delta.seconds % 3600) // 60
+
+        if jours > 0:
+            temps_restant_detail = f"{jours} jour{'s' if jours > 1 else ''} et {heures}h"
+        elif heures > 0:
+            temps_restant_detail = f"{heures}h et {minutes}min"
+        else:
+            temps_restant_detail = f"{minutes}min"
+
+    context = {
         "user": request.user,
         "offres": offres,
         "paiements": paiements,
         "categories": categories,
         "videos_recommandees": videos_recommandees,
-    })
+        "has_active_subscription": has_active_subscription,
+        "jours_restants": jours_restants if jours_restants is not None else 0,
+        "heures_restantes": heures_restantes if has_active_subscription else 0,
+        "show_renewal_alert": show_renewal_alert,
+        "abonnement": abonnement,
+        "premium_until": profile.premium_until,
+        "temps_restant_detail": temps_restant_detail,
+    }
+    return render(request, "core/dashboard.html", context)
 
 
 @login_required
@@ -308,31 +325,95 @@ def paiement_annule(request):
 
 
 def video(request):
-    """Liste des vidéos disponibles."""
-    videos = Video.objects.all()
-    context = {"videos": videos}
-    return render(request, "streaming/video.html", context)
+    """Page de catalogue des vidéos avec recherche et filtres."""
+    query = request.GET.get('q', '')
+    categorie_id = request.GET.get('categorie', '')
+
+    videos = Video.objects.filter(is_active=True)
+    categories = Categorie.objects.filter(is_active=True)
+    selected_category = None
+
+    # Filtrer par recherche
+    if query:
+        videos = videos.filter(
+            models.Q(titre__icontains=query) |
+            models.Q(description__icontains=query)
+        )
+
+    # Filtrer par catégorie
+    if categorie_id:
+        try:
+            selected_category = Categorie.objects.get(id=int(categorie_id), is_active=True)
+            videos = videos.filter(categorie=selected_category)
+        except (ValueError, TypeError, Categorie.DoesNotExist):
+            pass
+
+    # Filtrer par gratuit/premium
+    free_filter = request.GET.get('free', '')
+    if free_filter == 'true':
+        videos = videos.filter(is_free=True)
+    elif free_filter == 'false':
+        videos = videos.filter(is_free=False)
+
+    context = {
+        'videos': videos,
+        'categories': categories,
+        'selected_category': selected_category,
+        'query': query,
+        'selected_categorie': categorie_id,
+        'free_filter': free_filter,
+    }
+    return render(request, 'streaming/video.html', context)
 
 
 def streaming(request, id):
     """Page de streaming d'une vidéo avec commentaires."""
+    from django.utils import timezone
     video = get_object_or_404(Video, id=id)
 
     # Vérifier si la vidéo est gratuite ou si l'utilisateur a un abonnement
     is_accessible = video.is_free
     user_has_subscription = False
     user_has_liked = False
+    user_subscription_info = None
+    jours_restants = None
+    temps_restant_detail = ""
     
     if request.user.is_authenticated:
         try:
             profile = request.user.profile
-            abonnement = profile.get_active_subscription()
-            user_has_subscription = bool(abonnement)
+            now = timezone.now()
             
+            # Vérifier le statut Premium via premium_until
+            has_premium = bool(profile.premium_until and profile.premium_until > now)
+            user_has_subscription = has_premium
+            
+            # Calculer le temps restant pour l'affichage
+            if has_premium:
+                delta = profile.premium_until - now
+                jours = delta.days
+                heures = delta.seconds // 3600
+                minutes = (delta.seconds % 3600) // 60
+                
+                jours_restants = jours
+                
+                if jours > 0:
+                    temps_restant_detail = f"{jours} jour{'s' if jours > 1 else ''} et {heures}h"
+                elif heures > 0:
+                    temps_restant_detail = f"{heures}h et {minutes}min"
+                else:
+                    temps_restant_detail = f"{minutes}min"
+                
+                user_subscription_info = {
+                    'is_premium': True,
+                    'jours_restants': jours_restants,
+                    'temps_restant': temps_restant_detail,
+                }
+
             # Si l'utilisateur a un abonnement, toutes les vidéos sont accessibles
             if user_has_subscription:
                 is_accessible = True
-            
+
             # Vérifier si l'utilisateur a déjà liké cette vidéo
             from .models import Like
             user_has_liked = Like.objects.filter(user=request.user, video=video).exists()
@@ -369,6 +450,9 @@ def streaming(request, id):
         "commentaires": commentaires,
         "user_has_subscription": user_has_subscription,
         "user_has_liked": user_has_liked,
+        "user_subscription_info": user_subscription_info,
+        "jours_restants": jours_restants,
+        "temps_restant_detail": temps_restant_detail,
     }
     return render(request, "streaming/streaming.html", context)
 
@@ -376,12 +460,15 @@ def streaming(request, id):
 @login_required
 def stream_video_file(request, id):
     """
-    Endpoint sécurisé pour servir le fichier vidéo.
+    Endpoint sécurisé pour servir le fichier vidéo avec support du streaming.
     Vérifie que l'utilisateur a le droit de voir la vidéo.
     """
-    from django.http import FileResponse, HttpResponse
+    from django.http import StreamingHttpResponse, HttpResponse
+    import os
+    from django.utils.http import http_date
+
     video = get_object_or_404(Video, id=id)
-    
+
     # Vérifier les permissions
     if not video.is_free:
         # Vidéo premium - vérifier l'abonnement
@@ -394,15 +481,74 @@ def stream_video_file(request, id):
         except Exception:
             messages.error(request, "Cette vidéo est réservée aux abonnés.")
             return redirect("dashboard")
-    
-    # Servir le fichier vidéo
-    import os
-    
+
+    # Servir le fichier vidéo avec support du range requests (streaming)
     if video.fichier_video:
-        response = FileResponse(video.fichier_video)
+        video_path = video.fichier_video.path
+
+        # Vérifier que le fichier existe
+        if not os.path.exists(video_path):
+            return HttpResponse("Video file not found", status=404)
+
+        # Obtenir la taille du fichier
+        file_size = os.path.getsize(video_path)
+        
+        # Obtenir le temps de dernière modification
+        last_modified = int(os.path.getmtime(video_path))
+
+        # Gérer les range requests pour le streaming vidéo
+        range_header = request.META.get('HTTP_RANGE')
+
+        if range_header:
+            # Extraire la plage demandée (ex: bytes=0-)
+            try:
+                range_unit, range_value = range_header.split('=')
+                start, end = range_value.split('-')
+                start = int(start) if start else 0
+                end = int(end) if end else file_size - 1
+                end = min(end, file_size - 1)
+                
+                # Vérifier que la plage est valide
+                if start > end or start >= file_size:
+                    response = HttpResponse("Range Not Satisfiable", status=416)
+                    response['Content-Range'] = f'bytes */{file_size}'
+                    return response
+
+                # Ouvrir le fichier et seek to start position
+                video_file = open(video_path, 'rb')
+                video_file.seek(start)
+
+                # Créer la réponse avec le bon Content-Range
+                response = StreamingHttpResponse(
+                    iter(lambda: video_file.read(8192), b''),
+                    status=206,
+                    content_type='video/mp4'
+                )
+                response['Content-Length'] = end - start + 1
+                response['Content-Range'] = f'bytes {start}-{end}/{file_size}'
+                response['Accept-Ranges'] = 'bytes'
+                response['Content-Type'] = 'video/mp4'
+                response['Last-Modified'] = http_date(last_modified)
+                response['Cache-Control'] = 'public, max-age=31536000'
+
+                return response
+
+            except (ValueError, IndexError):
+                # Si le range header est mal formé, servir le fichier complet
+                pass
+
+        # Servir le fichier complet si pas de range header
+        response = StreamingHttpResponse(
+            open(video_path, 'rb'),
+            content_type='video/mp4'
+        )
+        response['Content-Length'] = file_size
+        response['Accept-Ranges'] = 'bytes'
         response['Content-Type'] = 'video/mp4'
+        response['Last-Modified'] = http_date(last_modified)
+        response['Cache-Control'] = 'public, max-age=31536000'
         return response
-    
+
     return HttpResponse("Video not found", status=404)
 
 

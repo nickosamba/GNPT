@@ -92,14 +92,14 @@
                 <div class="flex-1 max-w-xl mx-4 hidden md:block">
                     <div class="relative">
                         <input type="text" id="searchInput" placeholder="Rechercher une vidéo..." 
-                               class="w-full px-4 py-2.5 pl-11 bg-white/80 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-900/30 focus:border-blue-900 transition-all"
+                               class="w-full px-4 py-2.5 pl-11 bg-white/80 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-900/20 focus:border-blue-900 transition-all"
                                autocomplete="off">
                         <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                         </svg>
                         
                         <!-- Suggestions -->
-                        <div id="searchSuggestions" class="absolute top-full left-0 right-0 mt-2 bg-slate-50 border border-slate-200 rounded-2xl hover:bg-white shadow-2xl max-h-[400px] overflow-y-auto hidden z-50">
+                        <div id="searchSuggestions" class="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-2xl max-h-[400px] overflow-y-auto hidden z-50">
                             <div id="suggestionsContent" class="divide-y divide-slate-100"></div>
                         </div>
                     </div>
@@ -207,13 +207,13 @@
 
                         <!-- Actions -->
                         <div class="flex items-center gap-2">
-                            <button id="likeBtn" onclick="toggleLike()" class="like-btn flex items-center gap-2 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl hover:bg-white text-sm font-semibold hover:bg-slate-50 transition-all {% if user_has_liked %}liked{% endif %}">
+                            <button id="likeBtn" onclick="toggleLike()" class="like-btn flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-all {% if user_has_liked %}liked{% endif %}">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"/>
                                 </svg>
                                 <span id="likeCount">{{ video.likes_count|default:0 }}</span>
                             </button>
-                            <button onclick="shareVideo()" class="flex items-center gap-2 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl hover:bg-white text-sm font-semibold hover:bg-slate-50 transition-all">
+                            <button onclick="shareVideo()" class="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-all">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
                                 </svg>
@@ -272,7 +272,7 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                         </svg>
-                        <span>Commentaires</span> <span class="text-sm text-slate-500 font-medium" id="commentCount">{{ commentaires.count }}</span>
+                        Commentaires <span id="commentCount" class="text-slate-500 font-normal">({{ commentaires.count }})</span>
                     </h3>
 
                     <!-- Formulaire -->
@@ -284,9 +284,9 @@
                                 {{ user.first_name|default:user.username|slice:":1"|upper }}
                             </div>
                             <div class="flex-1 relative">
-                                <textarea id="commentInput" name="contenu" rows="1" 
+                                <textarea id="commentInput" name="contenu" rows="3" 
                                           placeholder="Ajouter un commentaire..." required
-                                          class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl hover:bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-900/30 focus:border-blue-900 transition-all resize-none"></textarea>
+                                          class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-900/20 focus:border-blue-900 transition-all resize-none"></textarea>
                                 <button type="submit" class="absolute bottom-3 right-3 px-4 py-1.5 bg-blue-900 text-white text-xs font-bold rounded-lg hover:bg-blue-800 transition-all">
                                     Envoyer
                                 </button>
@@ -310,7 +310,7 @@
                             <div class="flex-1">
                                 <div class="flex items-center gap-2 mb-1">
                                     <span class="font-semibold text-slate-900 text-sm">{{ commentaire.user.username }}</span>
-                                    <span class="text-xs text-slate-500">{{ commentaire.created_at|timesince }} ago</span>
+                                    <span class="text-xs text-slate-500">{{ commentaire.created_at|date:"d/m/Y à H:i" }}</span>
                                 </div>
                                 <p class="text-slate-700 text-sm leading-relaxed">{{ commentaire.contenu }}</p>
                             </div>
@@ -333,7 +333,7 @@
                 <div class="md:hidden">
                     <div class="relative">
                         <input type="text" id="searchInputMobile" placeholder="Rechercher une vidéo..." 
-                               class="w-full px-4 py-3 pl-11 bg-slate-50 border border-slate-200 rounded-2xl hover:bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-900/30 focus:border-blue-900 transition-all">
+                               class="w-full px-4 py-3 pl-11 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-900/20 focus:border-blue-900 transition-all">
                         <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                         </svg>

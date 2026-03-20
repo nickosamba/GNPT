@@ -3,6 +3,7 @@ from . import views
 
 urlpatterns = [
     path("", views.home, name="home"),
+    path("debug-oauth/", views.debug_oauth, name="debug_oauth"),
     path("connexion/", views.connexion, name="connexion"),
     path("deconnexion/", views.deconnexion, name="deconnexion"),
     path("dashboard/", views.dashboard, name="dashboard"),

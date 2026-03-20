@@ -37,12 +37,19 @@ class OffreAbonnement(models.Model):
     prix = models.PositiveIntegerField(help_text="Montant en devise locale (ex: FCFA)")
     duree_jours = models.IntegerField(default=30)
     is_active = models.BooleanField(default=True, help_text="Décocher pour masquer l'offre")
+    is_recommended = models.BooleanField(default=False, help_text="Cocher pour afficher le badge 'Recommandé' sur cette offre")
 
     # Flags de fonctionnalités (Active/Désactive des modules de l'app)
     can_access_videos = models.BooleanField(default=True)
     can_access_books = models.BooleanField(default=True)
     can_use_ai_chat = models.BooleanField(default=False)
     storage_limit_mb = models.FloatField(default=0.0, help_text="Limite de stockage PDF en Mo")
+
+    # Spécificités personnalisées (texte libre, une par ligne)
+    # Ex: Accès illimité aux vidéos
+    #     Téléchargement PDF
+    #     Support prioritaire
+    specificites = models.TextField(blank=True, help_text="Une spécificité par ligne")
 
     class Meta:
         verbose_name = "Offre d'Abonnement"
@@ -51,6 +58,12 @@ class OffreAbonnement(models.Model):
 
     def __str__(self):
         return f"{self.nom} - {self.prix}"
+
+    def get_specificites_list(self):
+        """Retourne la liste des spécificités pour l'affichage."""
+        if not self.specificites:
+            return []
+        return [line.strip() for line in self.specificites.split('\n') if line.strip()]
 
 
 # ==========================================

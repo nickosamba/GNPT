@@ -18,6 +18,23 @@ from .models import (
 )
 
 
+class OffreAbonnementForm(forms.ModelForm):
+    """Formulaire personnalisé pour les offres avec textarea pour spécificités."""
+    specificites = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'rows': 6, 
+            'placeholder': 'Une spécificité par ligne\nEx:\nAccès illimité aux vidéos\nTéléchargement PDF\nSupport prioritaire',
+            'class': 'vLargeTextField'
+        }),
+        required=False,
+        help_text="Une spécificité par ligne"
+    )
+    
+    class Meta:
+        model = OffreAbonnement
+        fields = '__all__'
+
+
 class ColorPickerWidget(forms.TextInput):
     """Widget personnalisé pour le sélecteur de couleur avec aperçu."""
     input_type = 'color'
@@ -73,14 +90,16 @@ class PaysAutoriseAdmin(ModelAdmin):
 # ==========================================
 @admin.register(OffreAbonnement)
 class OffreAbonnementAdmin(ModelAdmin):
-    list_display = ["nom", "prix", "duree_jours", "is_active", "can_access_videos", "can_access_books", "can_use_ai_chat", "storage_limit_mb"]
-    list_filter = ["is_active", "can_access_videos", "can_access_books", "can_use_ai_chat"]
+    form = OffreAbonnementForm
+    list_display = ["nom", "prix", "duree_jours", "is_active", "is_recommended", "can_access_videos", "can_access_books", "can_use_ai_chat"]
+    list_filter = ["is_active", "is_recommended", "can_access_videos", "can_access_books", "can_use_ai_chat"]
     search_fields = ["nom"]
-    list_editable = ["prix", "duree_jours", "is_active"]
+    list_editable = ["prix", "duree_jours", "is_active", "is_recommended"]
+    change_form_template = "admin/core/offreabonnement_form.html"
 
     fieldsets = [
         ("Informations générales", {
-            "fields": ["nom", "prix", "duree_jours", "is_active"],
+            "fields": ["nom", "prix", "duree_jours", "is_active", "is_recommended"],
         }),
         ("Fonctionnalités", {
             "fields": [
@@ -89,7 +108,10 @@ class OffreAbonnementAdmin(ModelAdmin):
                 "can_use_ai_chat",
                 "storage_limit_mb",
             ],
-            "classes": ["collapse"],
+        }),
+        ("Spécificités", {
+            "fields": ["specificites"],
+            "description": "Ajoutez les spécificités une par une avec le bouton ci-dessous"
         }),
     ]
 
@@ -140,11 +162,11 @@ class ProfileAdmin(ModelAdmin):
 @admin.register(Abonnement)
 class AbonnementAdmin(ModelAdmin):
     list_display = ["user", "offre", "date_debut", "date_fin", "actif"]
-    list_filter = ["actif", "date_fin"]
-    search_fields = ["user__email", "offre__nom"]
+    list_filter = ["actif", "date_fin", "offre"]
+    search_fields = ["user__email", "user__username", "offre__nom"]
     readonly_fields = ["date_debut"]
     list_editable = ["actif"]
-    
+
     fieldsets = [
         ("Informations", {
             "fields": ["user", "offre", "actif"],
@@ -153,6 +175,10 @@ class AbonnementAdmin(ModelAdmin):
             "fields": ["date_debut", "date_fin"],
         }),
     ]
+
+    def get_queryset(self, request):
+        """Optimize queries by selecting related user and offre."""
+        return super().get_queryset(request).select_related("user", "offre")
 
 
 @admin.register(Paiement)
