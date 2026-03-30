@@ -131,7 +131,7 @@
                                 <div class="relative group/book">
                                     <div class="absolute inset-0 bg-amber-400/20 blur-[80px] rounded-full scale-125"></div>
                                     <div class="relative w-64 h-80 transform rotate-[6deg] group-hover/book:rotate-0 transition-all duration-500 ease-out">
-                                        <img src="{% static 'core/LIVRE1.png' %}" alt="Couverture" class="w-full h-full object-contain drop-shadow-[20px_30px_50px_rgba(0,0,0,0.5)] transform scale-[1.5] group-hover/book:scale-[1.6]">
+                                        <img src="{% static './livre1.png'%}" alt="Couverture" class="w-full h-full object-contain drop-shadow-[20px_30px_50px_rgba(0,0,0,0.5)] transform scale-[1.5] group-hover/book:scale-[1.6]">
                                     </div>
                                 </div>
                             </div>
@@ -158,15 +158,21 @@
 
         <!-- Catégories Section -->
         <section id="categories">
-            <div class="flex items-end justify-between mb-8">
+            <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-8">
                 <div>
-                    <h3 class="text-2xl font-black text-slate-900 uppercase tracking-tight">Catégories</h3>
+                    <h3 class="text-2xl font-black text-slate-900 uppercase tracking-tight">
+                        Catégories
+                    </h3>
                     <div class="h-1 w-12 bg-amber-400 mt-1"></div>
                 </div>
-                <div class="flex items-center gap-4">
-                    <button onclick="openCategoriesModal()" class="text-blue-900 font-bold hover:underline transition-colors">Voir tout le catalogue</button>
+                <div class="flex justify-end mt-4 sm:mt-0">
+                    <button onclick="openCategoriesModal()" 
+                            class="text-blue-900 font-bold hover:underline transition-colors">
+                        Voir tout le catalogue
+                    </button>
                 </div>
             </div>
+
 
             <!-- Scroll horizontal des catégories -->
             <div class="relative">
@@ -205,27 +211,37 @@
 
         <!-- Recommandé Section -->
         <section>
-            <div class="flex items-end justify-between mb-8">
+            <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-8">
                 <div>
-                    <h3 class="text-2xl font-black text-slate-900 uppercase tracking-tight">Recommandé pour vous</h3>
+                    <h3 class="text-2xl font-black text-slate-900 uppercase tracking-tight">
+                        Recommandé pour vous
+                    </h3>
                     <div class="h-1 w-12 bg-blue-900 mt-1"></div>
                 </div>
                 <!-- Bouton Découvrir - Call to Action -->
-                <a href="{% url 'video' %}" class="inline-flex items-center gap-2 bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-300 hover:to-orange-300 text-blue-900 px-6 py-3 rounded-xl font-black text-sm shadow-lg hover:shadow-xl hover:scale-105 transition-all">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    DÉCOUVRIR
-                </a>
+                <div class="flex justify-end mt-4 sm:mt-0">
+                    <a href="{% url 'video' %}" 
+                    class="inline-flex items-center gap-2 bg-gradient-to-r from-amber-400 to-orange-400 
+                            hover:from-amber-300 hover:to-orange-300 text-blue-900 px-6 py-3 rounded-xl 
+                            font-black text-sm shadow-lg hover:shadow-xl hover:scale-105 transition-all">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        DÉCOUVRIR
+                    </a>
+                </div>
             </div>
+
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {% for video in videos_recommandees %}
                 <a href="{% if video.is_free or has_active_subscription %}{% url 'streaming' video.id %}{% else %}#abonnement{% endif %}" class="glass-panel p-4 rounded-3xl flex gap-4 items-center group cursor-pointer hover:shadow-lg transition-all border-white/60 hover:bg-white">
                     <div class="w-32 h-24 bg-slate-800 rounded-2xl flex-shrink-0 relative overflow-hidden shadow-md">
                         {% if video.miniature %}
-                            <img src="{{ video.miniature.url }}" alt="{{ video.titre }}" class="w-full h-full object-cover">
+                            <img src="{{video.miniature.url}}" alt="{{ video.titre }}" class="w-full h-full object-cover">
                         {% else %}
                             <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-900 to-indigo-950">
                                 <svg class="w-10 h-10 text-white/40" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
@@ -449,11 +465,12 @@
     </div>
     {% endif %}
 
-    <footer class="glass-panel mt-12 py-10 border-t">
+    {% include 'core/footer.html' %}
+    <!-- <footer class="glass-panel mt-12 py-10 border-t">
         <div class="max-w-7xl mx-auto px-4 text-center">
             <p class="text-slate-500 text-sm font-medium">© 2026 Grammaire Normative - Tous droits réservés.</p>
         </div>
-    </footer>
+    </footer> -->
 
     <!-- Modal "Toutes les catégories" -->
     <div id="modal-toutes-categories" class="fixed inset-0 z-[100] hidden">

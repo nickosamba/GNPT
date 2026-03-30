@@ -17,13 +17,14 @@ load_dotenv(BASE_DIR / ".env")
 SECRET_KEY = "django-insecure-&i5!plv$osz7o0rpk4-!9x)r4*3*4l!!j_zz$q81c%l0k+bttv"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
     ".ngrok-free.dev",
     "omerpay.share.zrok.io",
+    "https://marge-unerasing-mila.ngrok-free.dev"
     "192.168.1.166",
 ]
 
@@ -39,8 +40,8 @@ CSRF_TRUSTED_ORIGINS = [
     "https://marge-unerasing-mila.ngrok-free.dev",
     "https://*.ngrok-free.dev",
     "https://omerpay.share.zrok.io",
-    "http://127.0.0.1:8000",
-    "http://localhost:8000",
+    "http://127.0.0.1:8099",
+    "http://localhost:8099",
     "http://192.168.1.166:8000",
 ]
 
@@ -121,6 +122,7 @@ else:
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -129,6 +131,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
 ]
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 ROOT_URLCONF = "config.urls"
 

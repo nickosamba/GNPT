@@ -373,6 +373,8 @@
         <span id="toastMessage"></span>
     </div>
 
+    {% include '../core/footer.html' %}
+
     <script>
         // Initialisation de Plyr
         const player = new Plyr('#mainVideo', {
@@ -667,7 +669,7 @@
                     html += '<div class="p-3 border-b border-slate-100 bg-slate-50 rounded-t-xl"><p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Vidéos trouvées</p></div>';
 
                     // Vérifier si l'utilisateur a un abonnement
-                    const hasSubscription = {{ user.profile.is_premium|yesno:"true,false" }};
+                    const hasSubscription = {{ user_profile_info.is_premium|default:False|yesno:"true,false" }};
 
                     // Suggestions de vidéos
                     html += videos.map(video => {

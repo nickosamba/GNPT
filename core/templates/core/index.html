@@ -30,7 +30,7 @@
 
             <div class="relative flex justify-center items-center lg:pl-12 animate-float-in">
                 <div class="relative z-10 w-full max-w-[280px] sm:max-w-md lg:max-w-none transition-all duration-700 hover:rotate-3 hover:scale-[1.15]">
-                    <img src="{% static 'core/LIVRE1.png' %}" alt="Couverture Grammaire Normative" class="w-full h-auto drop-shadow-[0_45px_45px_rgba(0,0,0,0.25)] filter contrast-[1.05] scale-110 lg:scale-125">
+                    <img src="{% static './livre1.png'%}" alt="Couverture Grammaire Normative" class="w-full h-auto drop-shadow-[0_45px_45px_rgba(0,0,0,0.25)] filter contrast-[1.05] scale-110 lg:scale-125">
                 </div>
 
                 <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-amber-300/20 rounded-full blur-[120px] -z-10"></div>
@@ -50,8 +50,11 @@
 
         <div class="grid md:grid-cols-2 gap-16 items-center">
             <div class="order-2 md:order-1">
-                <img src="{% static 'core/LIVRE2.png' %}" alt="Intérieur du livre" class="h-[400px]">
+                <img src="{% static './livre2.png' %}" 
+                    alt="Intérieur du livre" 
+                    class="w-full h-auto max-w-xs md:max-w-md lg:max-w-lg">
             </div>
+
 
             <div class="order-1 md:order-2 space-y-8">
                 <div class="flex gap-4">

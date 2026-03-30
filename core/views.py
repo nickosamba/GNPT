@@ -355,6 +355,19 @@ def video(request):
     elif free_filter == 'false':
         videos = videos.filter(is_free=False)
 
+    # Passer les informations du profil utilisateur pour l'affichage
+    user_profile_info = None
+    if request.user.is_authenticated:
+        try:
+            profile = request.user.profile
+            user_profile_info = {
+                'is_premium': profile.is_premium,
+                'premium_until': profile.premium_until,
+                'avatar': profile.avatar.url if profile.avatar else None,
+            }
+        except Exception:
+            pass
+
     context = {
         'videos': videos,
         'categories': categories,
@@ -362,6 +375,7 @@ def video(request):
         'query': query,
         'selected_categorie': categorie_id,
         'free_filter': free_filter,
+        'user_profile_info': user_profile_info,
     }
     return render(request, 'streaming/video.html', context)
 
@@ -445,6 +459,20 @@ def streaming(request, id):
         return JsonResponse({"success": False, "message": "Contenu vide"}, status=400)
 
     commentaires = Commentaire.objects.filter(video=video).order_by('-created_at')
+    
+    # Passer les informations du profil utilisateur pour l'affichage
+    user_profile_info = None
+    if request.user.is_authenticated:
+        try:
+            profile = request.user.profile
+            user_profile_info = {
+                'is_premium': profile.is_premium,
+                'premium_until': profile.premium_until,
+                'avatar': profile.avatar.url if profile.avatar else None,
+            }
+        except Exception:
+            pass
+    
     context = {
         "video": video,
         "commentaires": commentaires,
@@ -453,6 +481,7 @@ def streaming(request, id):
         "user_subscription_info": user_subscription_info,
         "jours_restants": jours_restants,
         "temps_restant_detail": temps_restant_detail,
+        "user_profile_info": user_profile_info,
     }
     return render(request, "streaming/streaming.html", context)
 

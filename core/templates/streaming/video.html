@@ -49,8 +49,8 @@
                     <!-- Menu Profil -->
                     <div class="relative" x-data="{ open: false }">
                         <button @click="open = !open" class="w-12 h-12 rounded-full border-2 border-white shadow-md flex overflow-hidden items-center justify-center bg-white hover:border-blue-900 transition-colors">
-                            {% if user.profile.avatar %}
-                                <img src="{{ user.profile.avatar.url }}" alt="Avatar" class="w-full h-full object-cover">
+                            {% if user_profile_info.avatar %}
+                                <img src="{{ user_profile_info.avatar }}" alt="Avatar" class="w-full h-full object-cover">
                             {% else %}
                                 <span class="text-blue-900 font-black text-lg">{{ user.first_name|first|upper }}</span>
                             {% endif %}
@@ -68,32 +68,26 @@
                              class="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-50"
                              style="display: none;">
 
+                            <!-- En-tête du profil -->
                             <div class="bg-gradient-to-r from-blue-900 to-indigo-900 p-4 text-white">
                                 <p class="font-bold text-base">{{ user.first_name|default:user.username }}</p>
                                 <p class="text-xs text-blue-200 mt-1">{{ user.email }}</p>
-                                {% if user.profile.is_premium %}
-                                    <span class="inline-block mt-2 bg-amber-400 text-blue-900 text-[10px] font-black px-2 py-1 rounded-full uppercase">Premium</span>
+                                {% if user_profile_info and user_profile_info.is_premium and user_profile_info.premium_until %}
+                                    <div class="mt-2 flex items-center gap-2 flex-wrap">
+                                        <span class="bg-amber-400 text-blue-900 text-[10px] font-black px-2 py-1 rounded-full uppercase">Premium</span>
+                                        {% if user_profile_info.premium_until %}
+                                        <span id="countdown-display" class="text-[10px] font-bold px-2 py-1 bg-white/20 rounded-full whitespace-nowrap" data-end-date="{{ user_profile_info.premium_until.isoformat }}">
+                                            --j --h --m
+                                        </span>
+                                        {% endif %}
+                                    </div>
                                 {% else %}
                                     <span class="inline-block mt-2 bg-slate-600 text-white text-[10px] font-black px-2 py-1 rounded-full uppercase">Gratuit</span>
                                 {% endif %}
                             </div>
 
-                            <div class="p-2">
-                                <a href="#" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-xl transition-colors">
-                                    <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                                    </svg>
-                                    Mon profil
-                                </a>
-                                <a href="#" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-xl transition-colors">
-                                    <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                    </svg>
-                                    Paramètres
-                                </a>
-                            </div>
 
+                            <!-- Déconnexion -->
                             <div class="border-t border-slate-100 p-2">
                                 <form method="post" action="{% url 'account_logout' %}" id="logout-form">
                                     {% csrf_token %}
@@ -105,7 +99,6 @@
                                     </button>
                                 </form>
                             </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -117,13 +110,17 @@
         <!-- Hero Search Section -->
         <div class="mb-10">
             <!-- Header -->
-            <div class="flex items-end justify-between mb-6">
+            <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-6">
                 <div>
-                    <h1 class="text-3xl md:text-4xl font-black text-slate-900 uppercase tracking-tight">Catalogue des Vidéos</h1>
+                    <h1 class="text-3xl md:text-4xl font-black text-slate-900 uppercase tracking-tight">
+                        Catalogue des Vidéos
+                    </h1>
                     <div class="h-1.5 w-20 bg-amber-400 mt-3 rounded-full"></div>
                 </div>
-                <div class="text-right">
-                    <p class="text-sm text-slate-500 font-medium">{{ videos.count }} vidéos disponibles</p>
+                <div class="mt-4 sm:mt-0 text-right">
+                    <p class="text-sm text-slate-500 font-medium">
+                        {{ videos.count }} vidéos disponibles
+                    </p>
                 </div>
             </div>
 
@@ -247,7 +244,7 @@
 
                 {% else %}
                 <!-- Vidéo PREMIUM (verrouillée) -->
-                {% if user.profile.is_premium %}
+                {% if user_profile_info and user_profile_info.is_premium %}
                     <!-- Utilisateur PREMIUM - Vidéo débloquée -->
                     <a href="{% url 'streaming' video.id %}" class="group glass-panel p-4 rounded-3xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 border-2 border-amber-400 bg-gradient-to-br from-amber-50 to-white">
                         <div class="relative aspect-video bg-slate-800 rounded-2xl overflow-hidden mb-4 shadow-lg">
@@ -388,11 +385,7 @@
     </main>
 
     <!-- Footer -->
-    <footer class="glass-panel mt-12 py-8 border-t">
-        <div class="max-w-7xl mx-auto px-4 text-center">
-            <p class="text-slate-500 text-sm font-medium">© 2026 Grammaire Normative - Tous droits réservés.</p>
-        </div>
-    </footer>
+    {% include '../core/footer.html' %}
 
     <script>
         function confirmLogout() {
@@ -531,6 +524,56 @@
             div.textContent = text;
             return div.innerHTML;
         }
+
+        // Compteur de temps restant pour l'abonnement
+        function updateCountdown() {
+            const countdownElement = document.getElementById('countdown-display');
+            if (!countdownElement) return;
+
+            const endDateStr = countdownElement.getAttribute('data-end-date');
+            if (!endDateStr) return;
+
+            const endDate = new Date(endDateStr);
+            const now = new Date();
+            const diff = endDate - now;
+
+            if (diff <= 0) {
+                // Abonnement expiré
+                countdownElement.textContent = '⚠️ Expiré';
+                countdownElement.className = 'text-[10px] font-bold px-2 py-1 bg-red-500 text-white rounded-full';
+                return;
+            }
+
+            // Calculer les jours, heures, minutes
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+            // Formater l'affichage
+            let display = '';
+            if (days > 0) {
+                display += `${days}j `;
+            }
+            if (days > 0 || hours > 0) {
+                display += `${hours}h `;
+            }
+            display += `${minutes}m`;
+
+            countdownElement.textContent = display;
+
+            // Changer la couleur selon le temps restant
+            if (days <= 5) {
+                countdownElement.className = 'text-[10px] font-bold px-2 py-1 bg-red-500 text-white rounded-full animate-pulse';
+            } else if (days <= 10) {
+                countdownElement.className = 'text-[10px] font-bold px-2 py-1 bg-orange-400 text-white rounded-full';
+            } else {
+                countdownElement.className = 'text-[10px] font-bold px-2 py-1 bg-green-500 text-white rounded-full';
+            }
+        }
+
+        // Mettre à jour le compteur toutes les minutes
+        updateCountdown();
+        setInterval(updateCountdown, 60000);
     </script>
 </body>
 </html>

@@ -1,3 +1,4 @@
+{% load%}
 <!DOCTYPE html>
 <html lang="fr" class="scroll-smooth">
 <head>
@@ -78,7 +79,8 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-white border-t border-slate-100 py-12">
+    {% include 'core/footer.html' %}
+    <!-- <footer class="bg-white border-t border-slate-100 py-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex flex-col md:flex-row justify-between items-center gap-8">
                 <div class="flex items-center gap-3">
@@ -100,7 +102,7 @@
                 </div>
             </div>
         </div>
-    </footer>
+    </footer> -->
 
     <!-- Scripts -->
     <script>
