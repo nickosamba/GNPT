@@ -14,19 +14,20 @@ load_dotenv(BASE_DIR / ".env")
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-&i5!plv$osz7o0rpk4-!9x)r4*3*4l!!j_zz$q81c%l0k+bttv"
+SECRET_KEY = config("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
 
-ALLOWED_HOSTS = [
-    "localhost",
-    "127.0.0.1",
-    ".ngrok-free.dev",
-    "omerpay.share.zrok.io",
-    "https://marge-unerasing-mila.ngrok-free.dev"
-    "192.168.1.166",
-]
+DEBUG = config('DEBUG', cast=bool)
+ALLOWED_HOSTS = config('ALLOWED_HOSTS').split(',')
+# ALLOWED_HOSTS = [
+#     "localhost",
+#     "127.0.0.1",
+#     ".ngrok-free.dev",
+#     "omerpay.share.zrok.io",
+#     "https://marge-unerasing-mila.ngrok-free.dev"
+#     "192.168.1.166",
+# ]
 
 # SECURE_SSL_REDIRECT = True
 if DEBUG:
